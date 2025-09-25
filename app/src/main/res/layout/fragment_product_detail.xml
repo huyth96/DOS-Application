@@ -1,1 +1,35 @@
-<FrameLayout xmlns:android='http://schemas.android.com/apk/res/android' android:layout_width='match_parent' android:layout_height='match_parent' />
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="vertical" android:padding="16dp">
+
+        <ImageView
+            android:id="@+id/imgCover"
+            android:layout_width="match_parent" android:layout_height="200dp"
+            android:scaleType="centerCrop" />
+
+        <TextView
+            android:id="@+id/tvName"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:textStyle="bold" android:textSize="20sp"
+            android:layout_marginTop="12dp"/>
+
+        <TextView
+            android:id="@+id/tvPrice"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:textSize="16sp" android:layout_marginTop="4dp"/>
+
+        <TextView
+            android:id="@+id/tvDesc"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"/>
+
+        <Button
+            android:id="@+id/btnAddToCart"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="Thêm vào giỏ" android:layout_marginTop="16dp"/>
+    </LinearLayout>
+</ScrollView>
