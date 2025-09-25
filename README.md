@@ -15,14 +15,6 @@
 - **Data**: Room Database + seed từ `assets/seed.json`  
 - **MVVM**: ViewModel + LiveData + Repository
 
-## 📂 Cấu trúc
-app/java/com/drinkorder/
- ├─ data/ (db, dao, entity, repo)
- ├─ ui/   (login, home, cart, orders, detail)
- └─ vm/   (ViewModels)
-
-
-
 
 
 
