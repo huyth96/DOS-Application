@@ -15,12 +15,6 @@
 - **Data**: Room Database + seed từ `assets/seed.json`  
 - **MVVM**: ViewModel + LiveData + Repository
 
-## 🚀 Cài đặt
-1. Clone repo:  
-   git clone https://github.com/<your_username>/DrinkOrder.git
-2. Mở bằng **Android Studio (Flamingo+)**
-3. Run ▶️ (API 24+)
-
 ## 📂 Cấu trúc
 app/java/com/drinkorder/
  ├─ data/ (db, dao, entity, repo)
