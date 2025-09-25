@@ -1,0 +1,9 @@
+{
+  "users":[{"username":"user1","passwordHash":"123456","fullName":"Nguyen Van A","role":"customer"}],
+  "categories":[{"name":"Trà sữa","description":"Các loại trà sữa"},{"name":"Cà phê","description":"Đồ uống cà phê"}],
+  "products":[
+    {"name":"Trà sữa truyền thống","price":25000,"stock":100,"categoryId":1,"imageUrl":""},
+    {"name":"Trà sữa trân châu","price":30000,"stock":80,"categoryId":1,"imageUrl":""},
+    {"name":"Cà phê sữa đá","price":20000,"stock":120,"categoryId":2,"imageUrl":""}
+  ]
+}
