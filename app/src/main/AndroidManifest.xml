@@ -8,10 +8,18 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.DrinkOrder">
 
-        <!-- MainActivity KHÔNG phải launcher, chỉ activity thường -->
-        <activity android:name=".ui.MainActivity" />
+        <!-- 🔑 API key cho Google Maps: phải nằm TRONG <application> -->
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="@string/google_maps_key" />
 
-        <!-- LoginActivity là launcher -->
+        <activity
+            android:name=".ui.map.MapActivity"
+            android:exported="false"
+            android:label="Bản đồ" />
+
+        <!-- MainActivity hoạt động bình thường, Login là launcher -->
+        <activity android:name=".ui.MainActivity" />
         <activity
             android:name=".ui.login.LoginActivity"
             android:exported="true">
@@ -20,8 +28,5 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
     </application>
-
-
 </manifest>

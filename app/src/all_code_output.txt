@@ -1,0 +1,1714 @@
+==============================
+File: all_code_output.txt
+==============================
+
+
+==============================
+File: main\AndroidManifest.xml
+==============================
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <application
+        android:name=".App"
+        android:allowBackup="true"
+        android:supportsRtl="true"
+        android:theme="@style/Theme.DrinkOrder">
+
+        <!-- 🔑 API key cho Google Maps: phải nằm TRONG <application> -->
+        <meta-data
+            android:name="com.google.android.geo.API_KEY"
+            android:value="@string/google_maps_key" />
+
+        <activity
+            android:name=".ui.map.MapActivity"
+            android:exported="false"
+            android:label="Bản đồ" />
+
+        <!-- MainActivity hoạt động bình thường, Login là launcher -->
+        <activity android:name=".ui.MainActivity" />
+        <activity
+            android:name=".ui.login.LoginActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+    </application>
+</manifest>
+
+
+==============================
+File: main\assets\seed.json
+==============================
+{
+  "users":[{"username":"user1","passwordHash":"123456","fullName":"Nguyen Van A","role":"customer"}],
+  "categories":[{"name":"Trà sữa","description":"Các loại trà sữa"},{"name":"Cà phê","description":"Đồ uống cà phê"}],
+  "products":[
+    {"name":"Trà sữa truyền thống","price":25000,"stock":100,"categoryId":1,"imageUrl":""},
+    {"name":"Trà sữa trân châu","price":30000,"stock":80,"categoryId":1,"imageUrl":""},
+    {"name":"Cà phê sữa đá","price":20000,"stock":120,"categoryId":2,"imageUrl":""}
+  ]
+}
+
+==============================
+File: main\java\com\drinkorder\App.java
+==============================
+package com.drinkorder;
+import android.app.Application;
+import com.drinkorder.data.SeedInitializer;
+import com.drinkorder.data.db.AppDatabase;
+
+public class App extends Application {
+  @Override public void onCreate(){
+    super.onCreate();
+    SeedInitializer.runIfFirstLaunch(this, AppDatabase.get(this));
+  }
+}
+
+
+==============================
+File: main\java\com\drinkorder\data\SeedInitializer.java
+==============================
+package com.drinkorder.data;
+import android.content.Context;
+import com.drinkorder.data.db.AppDatabase;
+import com.drinkorder.data.db.entity.*;
+import org.json.*;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
+import java.util.concurrent.Executors;
+
+public class SeedInitializer {
+  public static void runIfFirstLaunch(Context ctx, AppDatabase db){
+    Executors.newSingleThreadExecutor().execute(() -> {
+      try {
+        if (db.userDao().count() > 0) return;
+        try (InputStream is = ctx.getAssets().open("seed.json")){
+          String json = new String(is.readAllBytes(), StandardCharsets.UTF_8);
+          JSONObject root = new JSONObject(json);
+
+          JSONArray users = root.optJSONArray("users");
+          if (users != null){
+            for (int i=0;i<users.length();i++){
+              JSONObject o = users.getJSONObject(i);
+              UserEntity u = new UserEntity();
+              u.username = o.getString("username");
+              u.passwordHash = o.getString("passwordHash");
+              u.fullName = o.optString("fullName", null);
+              u.role = o.optString("role","customer");
+              u.createdAt = System.currentTimeMillis();
+              db.userDao().insert(u);
+            }
+          }
+          JSONArray cats = root.optJSONArray("categories");
+          if (cats != null){
+            java.util.List<CategoryEntity> list = new ArrayList<>();
+            for (int i=0;i<cats.length();i++){
+              JSONObject o = cats.getJSONObject(i);
+              CategoryEntity c = new CategoryEntity();
+              c.name = o.getString("name");
+              c.description = o.optString("description", null);
+              c.createdAt = System.currentTimeMillis();
+              list.add(c);
+            }
+            db.categoryDao().upsertAll(list);
+          }
+          JSONArray prods = root.optJSONArray("products");
+          if (prods != null){
+            java.util.List<ProductEntity> list = new ArrayList<>();
+            for (int i=0;i<prods.length();i++){
+              JSONObject o = prods.getJSONObject(i);
+              ProductEntity p = new ProductEntity();
+              p.name = o.getString("name");
+              p.description = o.optString("description", null);
+              p.price = o.getDouble("price");
+              p.stock = o.optInt("stock", 0);
+              p.categoryId = o.getInt("categoryId");
+              p.imageUrl = o.optString("imageUrl", "");
+              list.add(p);
+            }
+            db.productDao().upsertAll(list);
+          }
+        }
+      } catch (Exception ignored){}
+    });
+  }
+}
+
+
+==============================
+File: main\java\com\drinkorder\data\db\AppDatabase.java
+==============================
+package com.drinkorder.data.db;
+import android.content.Context;
+import androidx.room.*;
+import com.drinkorder.data.db.dao.*;
+import com.drinkorder.data.db.entity.*;
+
+@Database(entities = {
+  UserEntity.class, CategoryEntity.class, ProductEntity.class,
+  CartItemEntity.class, OrderEntity.class, OrderItemEntity.class, PaymentEntity.class
+}, version = 1, exportSchema = false)
+public abstract class AppDatabase extends RoomDatabase {
+  public abstract UserDao userDao();
+  public abstract CategoryDao categoryDao();
+  public abstract ProductDao productDao();
+  public abstract CartDao cartDao();
+  public abstract OrderDao orderDao();
+  public abstract PaymentDao paymentDao();
+
+  private static volatile AppDatabase INSTANCE;
+  public static AppDatabase get(Context ctx){
+    if (INSTANCE == null){
+      synchronized (AppDatabase.class){
+        if (INSTANCE == null){
+          INSTANCE = Room.databaseBuilder(ctx.getApplicationContext(), AppDatabase.class, "drinkorder.db")
+            .fallbackToDestructiveMigration()
+            .build();
+        }
+      }
+    }
+    return INSTANCE;
+  }
+}
+
+
+==============================
+File: main\java\com\drinkorder\data\db\dao\CartDao.java
+==============================
+package com.drinkorder.data.db.dao;
+import androidx.lifecycle.LiveData;
+import androidx.room.*;
+import com.drinkorder.data.db.entity.CartItemEntity;
+@Dao public interface CartDao {
+  @Query("SELECT * FROM cart_items") LiveData<java.util.List<CartItemEntity>> all();
+  @Query("SELECT * FROM cart_items") java.util.List<CartItemEntity> allNow();
+  @Insert(onConflict=OnConflictStrategy.REPLACE) void upsert(CartItemEntity e);
+  @Query("DELETE FROM cart_items WHERE cartItemId=:id") void remove(int id);
+  @Query("DELETE FROM cart_items") void clear();
+  @Query("UPDATE cart_items SET quantity=:q WHERE productId=:pid") void setQty(int pid, int q);
+}
+
+
+==============================
+File: main\java\com\drinkorder\data\db\dao\CategoryDao.java
+==============================
+package com.drinkorder.data.db.dao;
+import androidx.lifecycle.LiveData;
+import androidx.room.*;
+import com.drinkorder.data.db.entity.CategoryEntity;
+import java.util.List;
+@Dao public interface CategoryDao {
+  @Query("SELECT * FROM categories ORDER BY name") LiveData<java.util.List<CategoryEntity>> all();
+  @Insert(onConflict=OnConflictStrategy.REPLACE) void upsertAll(java.util.List<CategoryEntity> list);
+}
+
+
+==============================
+File: main\java\com\drinkorder\data\db\dao\OrderDao.java
+==============================
+package com.drinkorder.data.db.dao;
+import androidx.lifecycle.LiveData;
+import androidx.room.*;
+import com.drinkorder.data.db.entity.OrderEntity;
+import com.drinkorder.data.db.entity.OrderItemEntity;
+@Dao public interface OrderDao {
+  @Insert long insert(OrderEntity o);
+  @Insert void insertItems(java.util.List<OrderItemEntity> items);
+  @Transaction
+  @Query("SELECT * FROM orders WHERE userId=:uid ORDER BY createdAt DESC")
+  LiveData<java.util.List<OrderEntity>> byUser(int uid);
+}
+
+
+==============================
+File: main\java\com\drinkorder\data\db\dao\PaymentDao.java
+==============================
+package com.drinkorder.data.db.dao;
+import androidx.room.*;
+import com.drinkorder.data.db.entity.PaymentEntity;
+@Dao public interface PaymentDao { @Insert void insert(PaymentEntity p); }
+
+
+==============================
+File: main\java\com\drinkorder\data\db\dao\ProductDao.java
+==============================
+package com.drinkorder.data.db.dao;
+import androidx.lifecycle.LiveData;
+import androidx.room.*;
+import com.drinkorder.data.db.entity.ProductEntity;
+import java.util.List;
+@Dao public interface ProductDao {
+  @Query("SELECT * FROM products WHERE categoryId=:cid ORDER BY name")
+  LiveData<java.util.List<ProductEntity>> byCategory(int cid);
+  @Query("SELECT * FROM products WHERE productId=:pid LIMIT 1")
+  LiveData<ProductEntity> byId(int pid);
+  @Query("SELECT * FROM products WHERE productId=:pid LIMIT 1")
+  ProductEntity byIdNow(int pid);
+  @Insert(onConflict=OnConflictStrategy.REPLACE) void upsertAll(java.util.List<ProductEntity> list);
+}
+
+
+==============================
+File: main\java\com\drinkorder\data\db\dao\UserDao.java
+==============================
+package com.drinkorder.data.db.dao;
+import androidx.room.*;
+import com.drinkorder.data.db.entity.UserEntity;
+@Dao public interface UserDao {
+  @Query("SELECT * FROM users WHERE username=:u LIMIT 1") UserEntity findByUsername(String u);
+  @Insert(onConflict=OnConflictStrategy.ABORT) long insert(UserEntity u);
+  @Query("SELECT COUNT(*) FROM users") int count();
+}
+
+
+==============================
+File: main\java\com\drinkorder\data\db\entity\CartItemEntity.java
+==============================
+package com.drinkorder.data.db.entity;
+import androidx.room.*;
+@Entity(tableName="cart_items",
+  indices=@Index(value={"productId"}, unique=true),
+  foreignKeys=@ForeignKey(entity=ProductEntity.class, parentColumns="productId", childColumns="productId", onDelete=ForeignKey.RESTRICT))
+public class CartItemEntity {
+  @PrimaryKey(autoGenerate=true) public int cartItemId;
+  public int productId;
+  public int quantity;
+  public long addedAt;
+}
+
+
+==============================
+File: main\java\com\drinkorder\data\db\entity\CategoryEntity.java
+==============================
+package com.drinkorder.data.db.entity;
+import androidx.room.*;
+@Entity(tableName="categories")
+public class CategoryEntity {
+  @PrimaryKey(autoGenerate=true) public int categoryId;
+  public String name;
+  public String description;
+  public long createdAt;
+}
+
+
+==============================
+File: main\java\com\drinkorder\data\db\entity\OrderEntity.java
+==============================
+package com.drinkorder.data.db.entity;
+import androidx.room.*;
+@Entity(tableName="orders",
+  indices={@Index("userId"), @Index("createdAt")},
+  foreignKeys=@ForeignKey(entity=UserEntity.class, parentColumns="userId", childColumns="userId", onDelete=ForeignKey.RESTRICT))
+public class OrderEntity {
+  @PrimaryKey(autoGenerate=true) public int orderId;
+  public int userId;
+  public double totalAmount;
+  public String orderStatus;
+  public String paymentStatus;
+  public long createdAt;
+}
+
+
+==============================
+File: main\java\com\drinkorder\data\db\entity\OrderItemEntity.java
+==============================
+package com.drinkorder.data.db.entity;
+import androidx.room.*;
+@Entity(tableName="order_items",
+  foreignKeys={
+    @ForeignKey(entity=OrderEntity.class, parentColumns="orderId", childColumns="orderId", onDelete=ForeignKey.CASCADE),
+    @ForeignKey(entity=ProductEntity.class, parentColumns="productId", childColumns="productId", onDelete=ForeignKey.RESTRICT)
+  },
+  indices={@Index("orderId"), @Index("productId")})
+public class OrderItemEntity {
+  @PrimaryKey(autoGenerate=true) public int orderItemId;
+  public int orderId;
+  public int productId;
+  public int quantity;
+  public double unitPrice;
+}
+
+
+==============================
+File: main\java\com\drinkorder\data\db\entity\PaymentEntity.java
+==============================
+package com.drinkorder.data.db.entity;
+import androidx.room.*;
+@Entity(tableName="payments",
+  foreignKeys=@ForeignKey(entity=OrderEntity.class, parentColumns="orderId", childColumns="orderId", onDelete=ForeignKey.CASCADE),
+  indices=@Index("orderId"))
+public class PaymentEntity {
+  @PrimaryKey(autoGenerate=true) public int paymentId;
+  public int orderId;
+  public double paidAmount;
+  public String method;
+  public String status;
+  public long createdAt;
+}
+
+
+==============================
+File: main\java\com\drinkorder\data\db\entity\ProductEntity.java
+==============================
+package com.drinkorder.data.db.entity;
+import androidx.room.*;
+@Entity(tableName="products",
+  foreignKeys=@ForeignKey(entity=CategoryEntity.class, parentColumns="categoryId", childColumns="categoryId", onDelete=ForeignKey.RESTRICT),
+  indices={@Index("categoryId"), @Index("name")})
+public class ProductEntity {
+  @PrimaryKey(autoGenerate=true) public int productId;
+  public String name;
+  public String description;
+  public double price;
+  public Integer stock;
+  public String imageUrl;
+  public int categoryId;
+}
+
+
+==============================
+File: main\java\com\drinkorder\data\db\entity\UserEntity.java
+==============================
+package com.drinkorder.data.db.entity;
+import androidx.annotation.NonNull;
+import androidx.room.*;
+
+@Entity(tableName="users", indices=@Index(value="username", unique=true))
+public class UserEntity {
+  @PrimaryKey(autoGenerate=true) public int userId;
+  @NonNull public String username;
+  @NonNull public String passwordHash;
+  public String fullName, email, phone, role;
+  public long createdAt;
+}
+
+
+==============================
+File: main\java\com\drinkorder\data\repo\AuthRepository.java
+==============================
+package com.drinkorder.data.repo;
+import android.content.SharedPreferences;
+import com.drinkorder.data.db.dao.UserDao;
+import com.drinkorder.data.db.entity.UserEntity;
+
+public class AuthRepository {
+  private final UserDao userDao; private final SharedPreferences sp;
+  public AuthRepository(UserDao dao, SharedPreferences sp){ this.userDao=dao; this.sp=sp; }
+  public boolean login(String username, String password){
+    UserEntity u = userDao.findByUsername(username); if (u==null) return false;
+    boolean ok = password.equals(u.passwordHash);
+    if (ok){
+      sp.edit().putInt("userId", u.userId).putString("username", u.username).putString("role", u.role==null?"customer":u.role).apply();
+    }
+    return ok;
+  }
+  public void logout(){ sp.edit().clear().apply(); }
+  public boolean isLoggedIn(){ return sp.contains("userId"); }
+  public int userId(){ return sp.getInt("userId", -1); }
+}
+
+
+==============================
+File: main\java\com\drinkorder\data\repo\CartRepository.java
+==============================
+package com.drinkorder.data.repo;
+import androidx.lifecycle.LiveData;
+import com.drinkorder.data.db.dao.CartDao;
+import com.drinkorder.data.db.entity.CartItemEntity;
+import com.drinkorder.data.db.entity.ProductEntity;
+import java.util.List;
+import java.util.concurrent.Executors;
+
+public class CartRepository {
+  private final CartDao cartDao;
+  public CartRepository(CartDao cartDao){ this.cartDao=cartDao; }
+  public LiveData<java.util.List<CartItemEntity>> cart(){ return cartDao.all(); }
+  public void add(ProductEntity p){
+    Executors.newSingleThreadExecutor().execute(() -> {
+      java.util.List<CartItemEntity> now = cartDao.allNow();
+      CartItemEntity ex = null;
+      for (CartItemEntity e: now){ if (e.productId==p.productId){ ex=e; break; } }
+      if (ex==null){ CartItemEntity e=new CartItemEntity(); e.productId=p.productId; e.quantity=1; e.addedAt=System.currentTimeMillis(); cartDao.upsert(e); }
+      else { cartDao.setQty(p.productId, ex.quantity+1); }
+    });
+  }
+  public void setQty(int pid, int q){ Executors.newSingleThreadExecutor().execute(() -> cartDao.setQty(pid,q)); }
+  public void remove(int id){ Executors.newSingleThreadExecutor().execute(() -> cartDao.remove(id)); }
+  public void clear(){ Executors.newSingleThreadExecutor().execute(cartDao::clear); }
+}
+
+
+==============================
+File: main\java\com\drinkorder\data\repo\CatalogRepository.java
+==============================
+package com.drinkorder.data.repo;
+import androidx.lifecycle.LiveData;
+import com.drinkorder.data.db.dao.CategoryDao;
+import com.drinkorder.data.db.dao.ProductDao;
+import com.drinkorder.data.db.entity.CategoryEntity;
+import com.drinkorder.data.db.entity.ProductEntity;
+import java.util.List;
+
+public class CatalogRepository {
+  private final CategoryDao c; private final ProductDao p;
+  public CatalogRepository(CategoryDao c, ProductDao p){ this.c=c; this.p=p; }
+  public LiveData<java.util.List<CategoryEntity>> categories(){ return c.all(); }
+  public LiveData<java.util.List<ProductEntity>> productsByCategory(int cid){ return p.byCategory(cid); }
+}
+
+
+==============================
+File: main\java\com\drinkorder\data\repo\OrderRepository.java
+==============================
+package com.drinkorder.data.repo;
+
+import android.os.Handler;
+import android.os.Looper;
+
+import androidx.annotation.Nullable;
+
+import com.drinkorder.data.db.dao.CartDao;
+import com.drinkorder.data.db.dao.OrderDao;
+import com.drinkorder.data.db.dao.PaymentDao;
+import com.drinkorder.data.db.dao.ProductDao;
+import com.drinkorder.data.db.entity.CartItemEntity;
+import com.drinkorder.data.db.entity.OrderEntity;
+import com.drinkorder.data.db.entity.OrderItemEntity;
+import com.drinkorder.data.db.entity.PaymentEntity;
+import com.drinkorder.data.db.entity.ProductEntity;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Executor;
+import java.util.concurrent.Executors;
+
+/**
+ * Repository xử lý đặt hàng offline (Room).
+ * - Tính tổng từ giỏ hàng hiện tại
+ * - Chốt giá theo Product tại thời điểm đặt
+ * - Tạo Order, OrderItems, Payment
+ * - Xoá Cart
+ * - Trả kết quả về UI thread qua Callback
+ */
+public class OrderRepository {
+
+  public interface Callback {
+    void onSuccess(long orderId);
+    void onError(Throwable t);
+  }
+
+  private final OrderDao orderDao;
+  private final PaymentDao paymentDao;
+  private final CartDao cartDao;
+  private final ProductDao productDao;
+
+  private final Executor io;              // chạy nền
+  private static final Handler MAIN = new Handler(Looper.getMainLooper()); // trả về UI
+
+  public OrderRepository(OrderDao orderDao,
+                         PaymentDao paymentDao,
+                         CartDao cartDao,
+                         ProductDao productDao) {
+    this(orderDao, paymentDao, cartDao, productDao, Executors.newSingleThreadExecutor());
+  }
+
+  public OrderRepository(OrderDao orderDao,
+                         PaymentDao paymentDao,
+                         CartDao cartDao,
+                         ProductDao productDao,
+                         Executor ioExecutor) {
+    this.orderDao = orderDao;
+    this.paymentDao = paymentDao;
+    this.cartDao = cartDao;
+    this.productDao = productDao;
+    this.io = ioExecutor == null ? Executors.newSingleThreadExecutor() : ioExecutor;
+  }
+
+  /**
+   * Tiến hành checkout:
+   *  - Đọc toàn bộ Cart ngay lúc gọi (sync)
+   *  - Tính tổng, tạo Order/Items/Payment
+   *  - Clear cart
+   *  - onSuccess/onError luôn được post về Main thread
+   */
+  public void checkout(int userId, @Nullable String paymentMethod, @Nullable Callback cb) {
+    io.execute(() -> {
+      try {
+        // 1) Lấy items hiện tại trong giỏ
+        List<CartItemEntity> cartItems = cartDao.allNow();
+        if (cartItems == null || cartItems.isEmpty()) {
+          throw new IllegalStateException("Cart is empty");
+        }
+
+        // 2) Tính tổng và build danh sách OrderItemEntity
+        double total = 0d;
+        List<OrderItemEntity> orderItems = new ArrayList<>(cartItems.size());
+        for (CartItemEntity ci : cartItems) {
+          ProductEntity p = productDao.byIdNow(ci.productId);
+          if (p == null) {
+            throw new IllegalStateException("Product not found: " + ci.productId);
+          }
+          double price = p.price; // chốt giá tại thời điểm đặt
+          total += price * ci.quantity;
+
+          OrderItemEntity oi = new OrderItemEntity();
+          oi.productId = p.productId;
+          oi.quantity = ci.quantity;
+          oi.unitPrice = price;
+          orderItems.add(oi);
+        }
+
+        // 3) Tạo Order
+        OrderEntity order = new OrderEntity();
+        order.userId = userId;
+        order.totalAmount = total;
+        order.orderStatus = "completed";
+        order.paymentStatus = "paid";
+        order.createdAt = System.currentTimeMillis();
+        long orderId = orderDao.insert(order);
+
+        // 4) Gắn orderId cho từng item và insert
+        for (OrderItemEntity oi : orderItems) {
+          oi.orderId = (int) orderId;
+        }
+        orderDao.insertItems(orderItems);
+
+        // 5) Tạo Payment (giả lập thành công)
+        PaymentEntity payment = new PaymentEntity();
+        payment.orderId = (int) orderId;
+        payment.paidAmount = total;
+        payment.method = (paymentMethod == null || paymentMethod.isEmpty()) ? "Cash" : paymentMethod;
+        payment.status = "success";
+        payment.createdAt = System.currentTimeMillis();
+        paymentDao.insert(payment);
+
+        // 6) Clear Cart
+        cartDao.clear();
+
+        // 7) Trả kết quả về UI thread
+        if (cb != null) MAIN.post(() -> cb.onSuccess(orderId));
+      } catch (Throwable t) {
+        if (cb != null) MAIN.post(() -> cb.onError(t));
+      }
+    });
+  }
+}
+
+
+==============================
+File: main\java\com\drinkorder\ui\MainActivity.java
+==============================
+package com.drinkorder.ui;
+
+import android.content.Intent;
+import android.os.Bundle;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
+import com.drinkorder.R;
+import com.drinkorder.ui.cart.CartFragment;
+import com.drinkorder.ui.home.HomeFragment;
+import com.drinkorder.ui.orders.OrdersFragment;
+import com.drinkorder.ui.map.MapActivity;   // 👈 import MapActivity
+import com.google.android.material.bottomnavigation.BottomNavigationView;
+
+public class MainActivity extends AppCompatActivity {
+  @Override protected void onCreate(Bundle b){
+    super.onCreate(b);
+    setContentView(R.layout.activity_main);
+
+    BottomNavigationView nav = findViewById(R.id.bottomNav);
+    nav.setOnItemSelectedListener(item -> {
+      int id = item.getItemId();
+
+      if (id == R.id.tab_cart) {
+        replaceFragment(new CartFragment());
+        return true;
+
+      } else if (id == R.id.tab_orders) {
+        replaceFragment(new OrdersFragment());
+        return true;
+
+      } else if (id == R.id.tab_map) {
+        // 👉 Trường hợp Map: mở Activity mới
+        startActivity(new Intent(this, MapActivity.class));
+        return false; // hoặc true: tuỳ bạn có muốn giữ trạng thái chọn Map hay không
+
+      } else {
+        replaceFragment(new HomeFragment());
+        return true;
+      }
+    });
+
+    nav.setSelectedItemId(R.id.tab_home);
+  }
+
+  private void replaceFragment(Fragment f) {
+    getSupportFragmentManager()
+            .beginTransaction()
+            .replace(R.id.container, f)
+            .commit();
+  }
+}
+
+
+==============================
+File: main\java\com\drinkorder\ui\cart\CartAdapter.java
+==============================
+package com.drinkorder.ui.cart;
+import android.view.*;
+import android.widget.Button;
+import android.widget.TextView;
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
+import com.drinkorder.R;
+import com.drinkorder.data.db.entity.CartItemEntity;
+import java.util.*;
+
+public class CartAdapter extends RecyclerView.Adapter<CartAdapter.VH> {
+  public interface Callback { void onPlus(CartItemEntity e); void onMinus(CartItemEntity e); void onRemove(CartItemEntity e); }
+  private final Callback cb; private final List<CartItemEntity> data = new ArrayList<>();
+  public CartAdapter(Callback cb){ this.cb=cb; }
+  public void submit(List<CartItemEntity> list){ data.clear(); if (list!=null) data.addAll(list); notifyDataSetChanged(); }
+  @NonNull @Override public VH onCreateViewHolder(@NonNull ViewGroup p, int vt){ return new VH(LayoutInflater.from(p.getContext()).inflate(R.layout.item_cart, p, false)); }
+  @Override public void onBindViewHolder(@NonNull VH h, int i){
+    CartItemEntity e = data.get(i);
+    h.title.setText("Product #"+e.productId);
+    h.qty.setText(String.valueOf(e.quantity));
+    h.btnPlus.setOnClickListener(v -> cb.onPlus(e));
+    h.btnMinus.setOnClickListener(v -> cb.onMinus(e));
+    h.btnRemove.setOnClickListener(v -> cb.onRemove(e));
+  }
+  @Override public int getItemCount(){ return data.size(); }
+  static class VH extends RecyclerView.ViewHolder{
+    TextView title, qty; Button btnPlus, btnMinus, btnRemove;
+    VH(View v){ super(v); title=v.findViewById(R.id.title); qty=v.findViewById(R.id.qty); btnPlus=v.findViewById(R.id.btnPlus); btnMinus=v.findViewById(R.id.btnMinus); btnRemove=v.findViewById(R.id.btnRemove); }
+  }
+}
+
+
+==============================
+File: main\java\com\drinkorder\ui\cart\CartFragment.java
+==============================
+package com.drinkorder.ui.cart;
+import android.os.Bundle;
+import android.view.*;
+import android.widget.Button;
+import android.widget.TextView;
+import android.widget.Toast;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import com.drinkorder.R;
+import com.drinkorder.data.db.entity.CartItemEntity;
+import com.drinkorder.vm.CartVM;
+import com.drinkorder.vm.OrdersVM;
+
+public class CartFragment extends Fragment {
+  private CartVM vm; private OrdersVM ordersVM; private CartAdapter adapter; private TextView tvTotal;
+  @Nullable @Override public View onCreateView(@NonNull LayoutInflater inf, @Nullable ViewGroup c, @Nullable Bundle b){
+    View v = inf.inflate(R.layout.fragment_cart, c, false);
+    RecyclerView rv = v.findViewById(R.id.rvCart);
+    rv.setLayoutManager(new LinearLayoutManager(getContext()));
+    adapter = new CartAdapter(new CartAdapter.Callback(){
+      @Override public void onPlus(CartItemEntity e){ vm.setQty(e.productId, e.quantity+1); }
+      @Override public void onMinus(CartItemEntity e){ vm.setQty(e.productId, Math.max(1, e.quantity-1)); }
+      @Override public void onRemove(CartItemEntity e){ vm.remove(e.cartItemId); }
+    });
+    rv.setAdapter(adapter);
+    tvTotal = v.findViewById(R.id.tvTotal);
+    Button btnCheckout = v.findViewById(R.id.btnCheckout);
+    btnCheckout.setOnClickListener(vv -> ordersVM.checkout(1, "Cash", new com.drinkorder.data.repo.OrderRepository.Callback(){
+      @Override public void onSuccess(long id){ Toast.makeText(getContext(),"Order "+id+" created",Toast.LENGTH_SHORT).show(); }
+      @Override public void onError(Throwable t){ Toast.makeText(getContext(),"Checkout failed: "+t.getMessage(),Toast.LENGTH_SHORT).show(); }
+    }));
+    return v;
+  }
+  @Override public void onViewCreated(@NonNull View v, @Nullable Bundle b){
+    super.onViewCreated(v,b);
+    vm = new ViewModelProvider(requireActivity()).get(CartVM.class);
+    ordersVM = new ViewModelProvider(requireActivity()).get(OrdersVM.class);
+    vm.cart.observe(getViewLifecycleOwner(), list -> {
+      adapter.submit(list);
+      long sum = 0; if (list!=null) for (CartItemEntity e: list) sum += e.quantity; // demo subtotal = số lượng
+      tvTotal.setText("Items: "+sum);
+    });
+  }
+}
+
+
+==============================
+File: main\java\com\drinkorder\ui\detail\ProductDetailFragment.java
+==============================
+package com.drinkorder.ui.detail;
+
+import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.TextView;
+import android.widget.Toast;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
+import com.bumptech.glide.Glide;
+import com.drinkorder.R;
+import com.drinkorder.data.db.entity.ProductEntity;
+import com.drinkorder.vm.CartVM;
+import com.drinkorder.vm.ProductDetailVM;
+
+public class ProductDetailFragment extends Fragment {
+
+  private static final String ARG_PRODUCT_ID = "product_id";
+
+  public static ProductDetailFragment newInstance(int productId) {
+    ProductDetailFragment f = new ProductDetailFragment();
+    Bundle b = new Bundle();
+    b.putInt(ARG_PRODUCT_ID, productId);
+    f.setArguments(b);
+    return f;
+  }
+
+  private ProductDetailVM vm;
+  private CartVM cartVM;
+  private ImageView img;
+  private TextView tvName, tvPrice, tvDesc;
+  private Button btnAdd;
+
+  @Nullable @Override
+  public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+    return inflater.inflate(R.layout.fragment_product_detail, container, false);
+  }
+
+  @Override
+  public void onViewCreated(@NonNull View v, @Nullable Bundle savedInstanceState) {
+    super.onViewCreated(v, savedInstanceState);
+    img = v.findViewById(R.id.imgCover);
+    tvName = v.findViewById(R.id.tvName);
+    tvPrice = v.findViewById(R.id.tvPrice);
+    tvDesc = v.findViewById(R.id.tvDesc);
+    btnAdd = v.findViewById(R.id.btnAddToCart);
+
+    vm = new ViewModelProvider(this).get(ProductDetailVM.class);
+    cartVM = new ViewModelProvider(requireActivity()).get(CartVM.class);
+
+    int productId = getArguments() != null ? getArguments().getInt(ARG_PRODUCT_ID, -1) : -1;
+    if (productId <= 0) {
+      Toast.makeText(getContext(), "Product invalid", Toast.LENGTH_SHORT).show();
+      requireActivity().onBackPressed();
+      return;
+    }
+
+    vm.productLive(productId).observe(getViewLifecycleOwner(), this::bindProduct);
+  }
+
+  private void bindProduct(ProductEntity p) {
+    if (p == null) return;
+    tvName.setText(p.name);
+    tvPrice.setText(String.valueOf((long)p.price));
+    tvDesc.setText(p.description == null ? "" : p.description);
+    Glide.with(this)
+            .load(p.imageUrl == null || p.imageUrl.isEmpty() ? R.drawable.ic_launcher_foreground : p.imageUrl)
+            .into(img);
+
+    btnAdd.setOnClickListener(v -> {
+      cartVM.add(p);
+      Toast.makeText(getContext(), "Đã thêm vào giỏ", Toast.LENGTH_SHORT).show();
+    });
+  }
+}
+
+
+==============================
+File: main\java\com\drinkorder\ui\home\HomeFragment.java
+==============================
+package com.drinkorder.ui.home;
+
+import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Toast;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+import com.drinkorder.R;
+import com.drinkorder.data.db.entity.ProductEntity;
+import com.drinkorder.ui.detail.ProductDetailFragment;
+import com.drinkorder.vm.CartVM;
+import com.drinkorder.vm.HomeVM;
+
+public class HomeFragment extends Fragment {
+
+  private HomeVM vm;
+  private CartVM cartVM;
+  private ProductsAdapter adapter;
+
+  @Nullable @Override
+  public View onCreateView(@NonNull LayoutInflater inf, @Nullable ViewGroup c, @Nullable Bundle b){
+    View v = inf.inflate(R.layout.fragment_home, c, false);
+    RecyclerView rv = v.findViewById(R.id.rvProducts); // id đúng với layout của bạn
+    rv.setLayoutManager(new LinearLayoutManager(getContext()));
+    adapter = new ProductsAdapter(
+            p -> { // Add to cart
+              cartVM.add(p);
+              Toast.makeText(getContext(), "Added to cart", Toast.LENGTH_SHORT).show();
+            },
+            this::openDetail // click item -> mở chi tiết
+    );
+    rv.setAdapter(adapter);
+    return v;
+  }
+
+  @Override public void onViewCreated(@NonNull View v, @Nullable Bundle b){
+    super.onViewCreated(v,b);
+    vm = new ViewModelProvider(this).get(HomeVM.class);
+    cartVM = new ViewModelProvider(requireActivity()).get(CartVM.class);
+    vm.products.observe(getViewLifecycleOwner(), list -> adapter.submit(list));
+  }
+
+  private void openDetail(ProductEntity item){
+    Fragment f = ProductDetailFragment.newInstance(item.productId);
+    // activity_main.xml có FrameLayout id @id/container (đã xem file của bạn) → dùng id này
+    requireActivity().getSupportFragmentManager()
+            .beginTransaction()
+            .replace(R.id.container, f) // <-- id container từ activity_main.xml
+            .addToBackStack("product_detail")
+            .commit();
+  }
+}
+
+
+==============================
+File: main\java\com\drinkorder\ui\home\ProductsAdapter.java
+==============================
+package com.drinkorder.ui.home;
+
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.TextView;
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.RecyclerView;
+import com.bumptech.glide.Glide;
+import com.drinkorder.R;
+import com.drinkorder.data.db.entity.ProductEntity;
+import java.util.ArrayList;
+import java.util.List;
+
+public class ProductsAdapter extends RecyclerView.Adapter<ProductsAdapter.VH> {
+
+    public interface OnAdd { void onAdd(ProductEntity p); }
+    public interface OnClick { void onClick(ProductEntity p); }
+
+    private final OnAdd onAdd;
+    private final OnClick onClick;
+    private final List<ProductEntity> data = new ArrayList<>();
+
+    public ProductsAdapter(OnAdd onAdd, OnClick onClick){
+        this.onAdd = onAdd;
+        this.onClick = onClick;
+    }
+
+    public void submit(List<ProductEntity> list){
+        data.clear();
+        if (list != null) data.addAll(list);
+        notifyDataSetChanged();
+    }
+
+    @NonNull @Override
+    public VH onCreateViewHolder(@NonNull ViewGroup p, int vt){
+        View v = LayoutInflater.from(p.getContext()).inflate(R.layout.item_product, p, false);
+        return new VH(v);
+    }
+
+    @Override
+    public void onBindViewHolder(@NonNull VH h, int i){
+        ProductEntity e = data.get(i);
+        h.title.setText(e.name);
+        h.price.setText(String.valueOf((long)e.price));
+        Glide.with(h.img.getContext()).load(e.imageUrl == null ? "" : e.imageUrl).into(h.img);
+
+        h.btn.setOnClickListener(v -> { if (onAdd != null) onAdd.onAdd(e); });
+        h.itemView.setOnClickListener(v -> { if (onClick != null) onClick.onClick(e); });
+    }
+
+    @Override public int getItemCount(){ return data.size(); }
+
+    static class VH extends RecyclerView.ViewHolder{
+        ImageView img; TextView title, price; Button btn;
+        VH(View v){
+            super(v);
+            img   = v.findViewById(R.id.img);
+            title = v.findViewById(R.id.title);
+            price = v.findViewById(R.id.price);
+            btn   = v.findViewById(R.id.btnAdd);
+        }
+    }
+}
+
+
+==============================
+File: main\java\com\drinkorder\ui\login\LoginActivity.java
+==============================
+package com.drinkorder.ui.login;
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
+import android.os.Bundle;
+import android.widget.*;
+import androidx.appcompat.app.AppCompatActivity;
+import com.drinkorder.R;
+import com.drinkorder.data.db.AppDatabase;
+import com.drinkorder.data.repo.AuthRepository;
+import com.drinkorder.ui.MainActivity;
+
+public class LoginActivity extends AppCompatActivity {
+  EditText edtUser, edtPass; Button btnLogin; AuthRepository auth;
+  @Override protected void onCreate(Bundle b){
+    super.onCreate(b);
+    setContentView(R.layout.activity_login);
+    edtUser = findViewById(R.id.edtUser);
+    edtPass = findViewById(R.id.edtPass);
+    btnLogin = findViewById(R.id.btnLogin);
+    SharedPreferences sp = getSharedPreferences("auth", Context.MODE_PRIVATE);
+    auth = new AuthRepository(AppDatabase.get(this).userDao(), sp);
+    if (auth.isLoggedIn()) goMain();
+    btnLogin.setOnClickListener(v -> {
+      String u = edtUser.getText().toString().trim();
+      String p = edtPass.getText().toString().trim();
+      new Thread(() -> {
+        boolean ok = auth.login(u,p);
+        runOnUiThread(() -> { if (ok) goMain(); else Toast.makeText(this,"Sai tài khoản hoặc mật khẩu",Toast.LENGTH_SHORT).show(); });
+      }).start();
+    });
+  }
+  private void goMain(){ startActivity(new Intent(this, MainActivity.class)); finish(); }
+}
+
+
+==============================
+File: main\java\com\drinkorder\ui\map\MapActivity.java
+==============================
+package com.drinkorder.ui.map;
+
+import android.content.Intent;
+import android.net.Uri;
+import android.os.Bundle;
+import android.widget.Button;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+
+import com.drinkorder.R;
+import com.google.android.gms.maps.CameraUpdateFactory;
+import com.google.android.gms.maps.GoogleMap;
+import com.google.android.gms.maps.OnMapReadyCallback;
+import com.google.android.gms.maps.SupportMapFragment;
+import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.MarkerOptions;
+
+public class MapActivity extends AppCompatActivity implements OnMapReadyCallback {
+
+    private GoogleMap gmap;
+
+    // Toạ độ demo: trung tâm Q.1, TP.HCM
+    private static final LatLng SHOP = new LatLng(10.776, 106.700);
+    private static final float DEFAULT_ZOOM = 15.5f;
+
+    @Override
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_map);
+
+        SupportMapFragment mapFragment = (SupportMapFragment)
+                getSupportFragmentManager().findFragmentById(R.id.mapFragment);
+        if (mapFragment != null) mapFragment.getMapAsync(this);
+
+        Button btn = findViewById(R.id.btnOpenGMaps);
+        btn.setOnClickListener(v -> openExternalGoogleMaps(SHOP));
+    }
+
+    @Override
+    public void onMapReady(@NonNull GoogleMap map) {
+        this.gmap = map;
+
+        // Thêm marker vị trí cửa hàng (đổi title/subtitle theo ý bạn)
+        gmap.addMarker(new MarkerOptions()
+                .position(SHOP)
+                .title("DrinkOrder Shop")
+                .snippet("Mở 8:00–22:00"));
+        gmap.moveCamera(CameraUpdateFactory.newLatLngZoom(SHOP, DEFAULT_ZOOM));
+
+        // Tắt cử chỉ/tuỳ chọn nếu muốn map tối giản:
+        // gmap.getUiSettings().setMapToolbarEnabled(false);
+        // gmap.getUiSettings().setZoomControlsEnabled(true);
+
+        // Bật my-location cần quyền runtime -> để đơn giản demo này tạm tắt:
+        // if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED)
+        //     gmap.setMyLocationEnabled(true);
+    }
+
+    private void openExternalGoogleMaps(LatLng latLng) {
+        String uri = "geo:" + latLng.latitude + "," + latLng.longitude +
+                "?q=" + latLng.latitude + "," + latLng.longitude + "(DrinkOrder+Shop)";
+        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(uri));
+        intent.setPackage("com.google.android.apps.maps");
+        startActivity(intent);
+    }
+}
+
+
+==============================
+File: main\java\com\drinkorder\ui\orders\OrdersFragment.java
+==============================
+package com.drinkorder.ui.orders;
+import android.os.Bundle;
+import android.view.*;
+import android.widget.ArrayAdapter;
+import android.widget.ListView;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
+import com.drinkorder.R;
+import com.drinkorder.data.db.entity.OrderEntity;
+import com.drinkorder.vm.OrdersVM;
+import java.util.ArrayList;
+
+public class OrdersFragment extends Fragment {
+  private OrdersVM vm; private ArrayAdapter<String> adapter; private ArrayList<String> items = new ArrayList<>();
+  @Nullable @Override public View onCreateView(@NonNull LayoutInflater inf, @Nullable ViewGroup c, @Nullable Bundle b){
+    View v = inf.inflate(R.layout.fragment_orders, c, false);
+    ListView lv = v.findViewById(R.id.lvOrders);
+    adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_list_item_1, items);
+    lv.setAdapter(adapter);
+    return v;
+  }
+  @Override public void onViewCreated(@NonNull View v, @Nullable Bundle b){
+    super.onViewCreated(v,b);
+    vm = new ViewModelProvider(requireActivity()).get(OrdersVM.class);
+    vm.load(1);
+    vm.orders.observe(getViewLifecycleOwner(), list -> {
+      items.clear();
+      if (list!=null) for (OrderEntity o: list) items.add("#"+o.orderId+" • "+o.totalAmount+" • "+o.orderStatus);
+      adapter.notifyDataSetChanged();
+    });
+  }
+}
+
+
+==============================
+File: main\java\com\drinkorder\vm\CartVM.java
+==============================
+package com.drinkorder.vm;
+import android.app.Application;
+import androidx.annotation.NonNull;
+import androidx.lifecycle.*;
+import com.drinkorder.data.db.AppDatabase;
+import com.drinkorder.data.db.entity.CartItemEntity;
+import com.drinkorder.data.db.entity.ProductEntity;
+import com.drinkorder.data.repo.CartRepository;
+
+public class CartVM extends AndroidViewModel {
+  private final CartRepository repo;
+  public LiveData<java.util.List<CartItemEntity>> cart;
+  public CartVM(@NonNull Application app){
+    super(app);
+    AppDatabase db = AppDatabase.get(app);
+    repo = new CartRepository(db.cartDao());
+    cart = repo.cart();
+  }
+  public void add(ProductEntity p){ repo.add(p); }
+  public void setQty(int pid, int q){ repo.setQty(pid, q); }
+  public void remove(int id){ repo.remove(id); }
+  public void clear(){ repo.clear(); }
+}
+
+
+==============================
+File: main\java\com\drinkorder\vm\HomeVM.java
+==============================
+package com.drinkorder.vm;
+import android.app.Application;
+import androidx.annotation.NonNull;
+import androidx.lifecycle.*;
+import com.drinkorder.data.db.AppDatabase;
+import com.drinkorder.data.db.entity.ProductEntity;
+import com.drinkorder.data.db.entity.CategoryEntity;
+import com.drinkorder.data.repo.CatalogRepository;
+
+public class HomeVM extends AndroidViewModel {
+  private final CatalogRepository repo;
+  public LiveData<java.util.List<CategoryEntity>> categories;
+  public MutableLiveData<Integer> selectedCategory = new MutableLiveData<>(1);
+  public LiveData<java.util.List<ProductEntity>> products;
+
+  public HomeVM(@NonNull Application app){
+    super(app);
+    AppDatabase db = AppDatabase.get(app);
+    repo = new CatalogRepository(db.categoryDao(), db.productDao());
+    categories = repo.categories();
+    products = Transformations.switchMap(selectedCategory, cid -> repo.productsByCategory(cid==null?1:cid));
+  }
+}
+
+
+==============================
+File: main\java\com\drinkorder\vm\OrdersVM.java
+==============================
+package com.drinkorder.vm;
+import android.app.Application;
+import androidx.annotation.NonNull;
+import androidx.lifecycle.*;
+import com.drinkorder.data.db.AppDatabase;
+import com.drinkorder.data.db.entity.OrderEntity;
+import com.drinkorder.data.repo.OrderRepository;
+
+public class OrdersVM extends AndroidViewModel {
+  private final AppDatabase db;
+  private final OrderRepository orderRepo;
+  public LiveData<java.util.List<OrderEntity>> orders;
+
+  public OrdersVM(@NonNull Application app){
+    super(app);
+    db = AppDatabase.get(app);
+    orderRepo = new OrderRepository(db.orderDao(), db.paymentDao(), db.cartDao(), db.productDao());
+  }
+  public void load(int userId){ orders = db.orderDao().byUser(userId); }
+  public void checkout(int userId, String method, OrderRepository.Callback cb){ orderRepo.checkout(userId, method, cb); }
+}
+
+
+==============================
+File: main\java\com\drinkorder\vm\ProductDetailVM.java
+==============================
+package com.drinkorder.vm;
+
+import android.app.Application;
+import androidx.annotation.NonNull;
+import androidx.lifecycle.AndroidViewModel;
+import androidx.lifecycle.LiveData;
+import com.drinkorder.data.db.AppDatabase;
+import com.drinkorder.data.db.entity.ProductEntity;
+
+public class ProductDetailVM extends AndroidViewModel {
+  private final AppDatabase db;
+  public ProductDetailVM(@NonNull Application app) {
+    super(app);
+    db = AppDatabase.get(app);
+  }
+  public LiveData<ProductEntity> productLive(int productId){
+    return db.productDao().byId(productId);
+  }
+}
+
+
+==============================
+File: main\res\drawable\ic_launcher_background.xml
+==============================
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path
+        android:fillColor="#3DDC84"
+        android:pathData="M0,0h108v108h-108z" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M9,0L9,108"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M19,0L19,108"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M29,0L29,108"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M39,0L39,108"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M49,0L49,108"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M59,0L59,108"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M69,0L69,108"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M79,0L79,108"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M89,0L89,108"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M99,0L99,108"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M0,9L108,9"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M0,19L108,19"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M0,29L108,29"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M0,39L108,39"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M0,49L108,49"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M0,59L108,59"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M0,69L108,69"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M0,79L108,79"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M0,89L108,89"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M0,99L108,99"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M19,29L89,29"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M19,39L89,39"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M19,49L89,49"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M19,59L89,59"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M19,69L89,69"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M19,79L89,79"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M29,19L29,89"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M39,19L39,89"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M49,19L49,89"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M59,19L59,89"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M69,19L69,89"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M79,19L79,89"
+        android:strokeWidth="0.8"
+        android:strokeColor="#33FFFFFF" />
+</vector>
+
+
+==============================
+File: main\res\drawable\ic_launcher_foreground.xml
+==============================
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <path android:pathData="M31,63.928c0,0 6.4,-11 12.1,-13.1c7.2,-2.6 26,-1.4 26,-1.4l38.1,38.1L107,108.928l-32,-1L31,63.928z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:endX="85.84757"
+                android:endY="92.4963"
+                android:startX="42.9492"
+                android:startY="49.59793"
+                android:type="linear">
+                <item
+                    android:color="#44000000"
+                    android:offset="0.0" />
+                <item
+                    android:color="#00000000"
+                    android:offset="1.0" />
+            </gradient>
+        </aapt:attr>
+    </path>
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillType="nonZero"
+        android:pathData="M65.3,45.828l3.8,-6.6c0.2,-0.4 0.1,-0.9 -0.3,-1.1c-0.4,-0.2 -0.9,-0.1 -1.1,0.3l-3.9,6.7c-6.3,-2.8 -13.4,-2.8 -19.7,0l-3.9,-6.7c-0.2,-0.4 -0.7,-0.5 -1.1,-0.3C38.8,38.328 38.7,38.828 38.9,39.228l3.8,6.6C36.2,49.428 31.7,56.028 31,63.928h46C76.3,56.028 71.8,49.428 65.3,45.828zM43.4,57.328c-0.8,0 -1.5,-0.5 -1.8,-1.2c-0.3,-0.7 -0.1,-1.5 0.4,-2.1c0.5,-0.5 1.4,-0.7 2.1,-0.4c0.7,0.3 1.2,1 1.2,1.8C45.3,56.528 44.5,57.328 43.4,57.328L43.4,57.328zM64.6,57.328c-0.8,0 -1.5,-0.5 -1.8,-1.2s-0.1,-1.5 0.4,-2.1c0.5,-0.5 1.4,-0.7 2.1,-0.4c0.7,0.3 1.2,1 1.2,1.8C66.5,56.528 65.6,57.328 64.6,57.328L64.6,57.328z"
+        android:strokeWidth="1"
+        android:strokeColor="#00000000" />
+</vector>
+
+==============================
+File: main\res\layout\activity_login.xml
+==============================
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:padding="24dp" android:orientation="vertical"
+    android:layout_width="match_parent" android:layout_height="match_parent">
+    <EditText android:id="@+id/edtUser" android:hint="Username"
+        android:layout_width="match_parent" android:layout_height="wrap_content"/>
+    <EditText android:id="@+id/edtPass" android:hint="Password" android:inputType="textPassword"
+        android:layout_width="match_parent" android:layout_height="wrap_content"/>
+    <Button android:id="@+id/btnLogin" android:text="Login"
+        android:layout_width="match_parent" android:layout_height="wrap_content"/>
+</LinearLayout>
+
+
+==============================
+File: main\res\layout\activity_main.xml
+==============================
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  xmlns:app="http://schemas.android.com/apk/res-auto"
+  android:orientation="vertical" android:layout_width="match_parent" android:layout_height="match_parent">
+  <FrameLayout android:id="@+id/container"
+      android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"/>
+  <com.google.android.material.bottomnavigation.BottomNavigationView
+      android:id="@+id/bottomNav"
+      android:layout_width="match_parent" android:layout_height="wrap_content"
+      app:menu="@menu/menu_bottom"/>
+</LinearLayout>
+
+
+==============================
+File: main\res\layout\activity_map.xml
+==============================
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <!-- SupportMapFragment sẽ được inflate bằng FragmentContainerView -->
+    <fragment
+        android:id="@+id/mapFragment"
+        android:name="com.google.android.gms.maps.SupportMapFragment"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent" />
+
+    <!-- Nút mở Google Maps ngoài (tuỳ chọn) -->
+    <Button
+        android:id="@+id/btnOpenGMaps"
+        android:text="Mở trong Google Maps"
+        android:layout_gravity="bottom|end"
+        android:layout_margin="16dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"/>
+</FrameLayout>
+
+
+==============================
+File: main\res\layout\fragment_cart.xml
+==============================
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+  android:orientation="vertical" android:layout_width="match_parent" android:layout_height="match_parent">
+  <androidx.recyclerview.widget.RecyclerView
+      android:id="@+id/rvCart" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"/>
+  <TextView android:id="@+id/tvTotal" android:text="Items: 0"
+      android:padding="12dp" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+  <Button android:id="@+id/btnCheckout" android:text="Checkout"
+      android:layout_width="match_parent" android:layout_height="wrap_content"/>
+</LinearLayout>
+
+
+==============================
+File: main\res\layout\fragment_home.xml
+==============================
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent">
+  <androidx.recyclerview.widget.RecyclerView
+      android:id="@+id/rvProducts"
+      android:layout_width="match_parent" android:layout_height="match_parent"/>
+</FrameLayout>
+
+
+==============================
+File: main\res\layout\fragment_orders.xml
+==============================
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent">
+  <ListView android:id="@+id/lvOrders" android:layout_width="match_parent" android:layout_height="match_parent"/>
+</FrameLayout>
+
+
+==============================
+File: main\res\layout\fragment_product_detail.xml
+==============================
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent">
+
+    <LinearLayout
+        android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:orientation="vertical" android:padding="16dp">
+
+        <ImageView
+            android:id="@+id/imgCover"
+            android:layout_width="match_parent" android:layout_height="200dp"
+            android:scaleType="centerCrop" />
+
+        <TextView
+            android:id="@+id/tvName"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:textStyle="bold" android:textSize="20sp"
+            android:layout_marginTop="12dp"/>
+
+        <TextView
+            android:id="@+id/tvPrice"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:textSize="16sp" android:layout_marginTop="4dp"/>
+
+        <TextView
+            android:id="@+id/tvDesc"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:layout_marginTop="12dp"/>
+
+        <Button
+            android:id="@+id/btnAddToCart"
+            android:layout_width="match_parent" android:layout_height="wrap_content"
+            android:text="Thêm vào giỏ" android:layout_marginTop="16dp"/>
+    </LinearLayout>
+</ScrollView>
+
+
+==============================
+File: main\res\layout\item_cart.xml
+==============================
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal" android:padding="8dp"
+    android:layout_width="match_parent" android:layout_height="wrap_content">
+  <TextView android:id="@+id/title" android:textStyle="bold" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1"/>
+  <Button android:id="@+id/btnMinus" android:text="-" android:layout_width="40dp" android:layout_height="40dp"/>
+  <TextView android:id="@+id/qty" android:padding="8dp" android:layout_width="wrap_content" android:layout_height="wrap_content" android:text="1"/>
+  <Button android:id="@+id/btnPlus" android:text="+" android:layout_width="40dp" android:layout_height="40dp"/>
+  <Button android:id="@+id/btnRemove" android:text="X" android:layout_width="40dp" android:layout_height="40dp"/>
+</LinearLayout>
+
+
+==============================
+File: main\res\layout\item_product.xml
+==============================
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="horizontal" android:padding="8dp"
+    android:layout_width="match_parent" android:layout_height="wrap_content">
+  <ImageView android:id="@+id/img" android:layout_width="56dp" android:layout_height="56dp"/>
+  <LinearLayout android:orientation="vertical" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:paddingStart="8dp">
+    <TextView android:id="@+id/title" android:textStyle="bold" android:textSize="16sp" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+    <TextView android:id="@+id/price" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+  </LinearLayout>
+  <Button android:id="@+id/btnAdd" android:text="Add" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
+</LinearLayout>
+
+
+==============================
+File: main\res\menu\menu_bottom.xml
+==============================
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+  <item android:id="@+id/tab_home" android:title="Home" android:icon="@android:drawable/ic_menu_view"/>
+  <item android:id="@+id/tab_cart" android:title="Cart" android:icon="@android:drawable/ic_menu_add"/>
+  <item android:id="@+id/tab_orders" android:title="Orders" android:icon="@android:drawable/ic_menu_agenda"/>
+  <item
+      android:id="@+id/tab_map"
+      android:title="Map"
+      android:icon="@android:drawable/ic_menu_mapmode"/>
+
+</menu>
+
+
+==============================
+File: main\res\mipmap-anydpi-v26\ic_launcher.xml
+==============================
+<?xml version="1.0" encoding="utf-8"?>
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@drawable/ic_launcher_background" />
+    <foreground android:drawable="@drawable/ic_launcher_foreground" />
+    <monochrome android:drawable="@drawable/ic_launcher_foreground" />
+</adaptive-icon>
+
+==============================
+File: main\res\mipmap-anydpi-v26\ic_launcher_round.xml
+==============================
+<?xml version="1.0" encoding="utf-8"?>
+<adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
+    <background android:drawable="@drawable/ic_launcher_background" />
+    <foreground android:drawable="@drawable/ic_launcher_foreground" />
+    <monochrome android:drawable="@drawable/ic_launcher_foreground" />
+</adaptive-icon>
+
+==============================
+File: main\res\values\colors.xml
+==============================
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="black">#FF000000</color>
+    <color name="white">#FFFFFFFF</color>
+</resources>
+
+==============================
+File: main\res\values\secrets.xml
+==============================
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="google_maps_key"></string>
+</resources>
+
+
+==============================
+File: main\res\values\strings.xml
+==============================
+<resources>
+    <string name="app_name">DrinkOrder</string>
+</resources>
+
+==============================
+File: main\res\values\themes.xml
+==============================
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Base.Theme.DrinkOrder" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Customize your light theme here. -->
+        <!-- <item name="colorPrimary">@color/my_light_primary</item> -->
+    </style>
+
+    <style name="Theme.DrinkOrder" parent="Base.Theme.DrinkOrder" />
+</resources>
+
+==============================
+File: main\res\values-night\themes.xml
+==============================
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- Base application theme. -->
+    <style name="Base.Theme.DrinkOrder" parent="Theme.Material3.DayNight.NoActionBar">
+        <!-- Customize your dark theme here. -->
+        <!-- <item name="colorPrimary">@color/my_dark_primary</item> -->
+    </style>
+</resources>
+
+==============================
+File: main\res\xml\backup_rules.xml
+==============================
+<?xml version="1.0" encoding="utf-8"?><!--
+   Sample backup rules file; uncomment and customize as necessary.
+   See https://developer.android.com/guide/topics/data/autobackup
+   for details.
+   Note: This file is ignored for devices older than API 31
+   See https://developer.android.com/about/versions/12/backup-restore
+-->
+<full-backup-content>
+    <!--
+   <include domain="sharedpref" path="."/>
+   <exclude domain="sharedpref" path="device.xml"/>
+-->
+</full-backup-content>
+
+==============================
+File: main\res\xml\data_extraction_rules.xml
+==============================
+<?xml version="1.0" encoding="utf-8"?><!--
+   Sample data extraction rules file; uncomment and customize as necessary.
+   See https://developer.android.com/about/versions/12/backup-restore#xml-changes
+   for details.
+-->
+<data-extraction-rules>
+    <cloud-backup>
+        <!-- TODO: Use <include> and <exclude> to control what is backed up.
+        <include .../>
+        <exclude .../>
+        -->
+    </cloud-backup>
+    <!--
+    <device-transfer>
+        <include .../>
+        <exclude .../>
+    </device-transfer>
+    -->
+</data-extraction-rules>
+

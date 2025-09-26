@@ -2,4 +2,9 @@
   <item android:id="@+id/tab_home" android:title="Home" android:icon="@android:drawable/ic_menu_view"/>
   <item android:id="@+id/tab_cart" android:title="Cart" android:icon="@android:drawable/ic_menu_add"/>
   <item android:id="@+id/tab_orders" android:title="Orders" android:icon="@android:drawable/ic_menu_agenda"/>
+  <item
+      android:id="@+id/tab_map"
+      android:title="Map"
+      android:icon="@android:drawable/ic_menu_mapmode"/>
+
 </menu>
