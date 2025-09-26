@@ -1,10 +1,53 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:padding="24dp" android:orientation="vertical"
-    android:layout_width="match_parent" android:layout_height="match_parent">
-    <EditText android:id="@+id/edtUser" android:hint="Username"
-        android:layout_width="match_parent" android:layout_height="wrap_content"/>
-    <EditText android:id="@+id/edtPass" android:hint="Password" android:inputType="textPassword"
-        android:layout_width="match_parent" android:layout_height="wrap_content"/>
-    <Button android:id="@+id/btnLogin" android:text="Login"
-        android:layout_width="match_parent" android:layout_height="wrap_content"/>
-</LinearLayout>
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:orientation="vertical"
+        android:padding="20dp"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/tvTitle"
+            android:text="Đăng nhập"
+            android:textSize="24sp"
+            android:textStyle="bold"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp" />
+
+        <EditText
+            android:id="@+id/edtUser"
+            android:hint="Username"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:imeOptions="actionNext" />
+
+        <EditText
+            android:id="@+id/edtPass"
+            android:hint="Password"
+            android:inputType="textPassword"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:imeOptions="actionDone" />
+
+        <Button
+            android:id="@+id/btnLogin"
+            android:text="Đăng nhập"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp" />
+
+        <Button
+            android:id="@+id/btnGoRegister"
+            android:text="Đăng ký tài khoản"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp" />
+
+    </LinearLayout>
+</ScrollView>

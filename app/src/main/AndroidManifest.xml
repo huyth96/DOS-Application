@@ -28,5 +28,18 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".ui.login.RegisterActivity"
+            android:exported="false"
+            android:label="Đăng ký"/>
+        <activity
+            android:name=".ui.login.ProfileActivity"
+            android:exported="false"
+            android:label="Tài khoản" />
+        <activity
+            android:name=".ui.login.EditProfileActivity"
+            android:exported="false"
+            android:label="Chỉnh thông tin" />
+
     </application>
 </manifest>

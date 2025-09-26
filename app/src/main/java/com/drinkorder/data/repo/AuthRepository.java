@@ -17,4 +17,7 @@ public class AuthRepository {
   public void logout(){ sp.edit().clear().apply(); }
   public boolean isLoggedIn(){ return sp.contains("userId"); }
   public int userId(){ return sp.getInt("userId", -1); }
+  public String getLoggedUserName() {
+    return sp.getString("username", null);
+  }
 }
