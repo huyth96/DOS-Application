@@ -9,6 +9,7 @@ import androidx.fragment.app.Fragment;
 import com.drinkorder.R;
 import com.drinkorder.ui.cart.CartFragment;
 import com.drinkorder.ui.home.HomeFragment;
+import com.drinkorder.ui.login.ProfileActivity;
 import com.drinkorder.ui.order.OrdersFragment;   // ✅ Đúng fragment có OrderNavigator
 import com.drinkorder.ui.map.MapActivity;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -38,7 +39,12 @@ public class MainActivity extends AppCompatActivity {
         startActivity(new Intent(this, MapActivity.class));
         return false; // hoặc true tuỳ bạn muốn giữ trạng thái chọn Map hay không
 
-      } else {
+      }
+      else if (id == R.id.tab_profile) {
+        startActivity(new Intent(this, ProfileActivity.class));
+        return true;
+      }
+      else {
         replaceFragment(new HomeFragment());
         return true;
       }

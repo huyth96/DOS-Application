@@ -6,5 +6,8 @@
       android:id="@+id/tab_map"
       android:title="Map"
       android:icon="@android:drawable/ic_menu_mapmode"/>
-
+  <item
+      android:id="@+id/tab_profile"
+      android:icon="@drawable/ic_person"
+      android:title="Tài khoản" />
 </menu>
