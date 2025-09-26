@@ -1,0 +1,52 @@
+package com.drinkorder.ui.order;
+
+import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.drinkorder.R;
+import com.drinkorder.data.db.AppDatabase;
+import com.drinkorder.data.db.dao.OrderDao;
+import com.drinkorder.data.db.entity.OrderEntity;
+
+public class OrdersFragment extends Fragment {
+
+    private OrdersAdapter adapter;
+    private OrderListVM vm;
+
+    @Nullable @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.simple_recycler, container, false);
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View v, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(v, savedInstanceState);
+        RecyclerView rv = v.findViewById(R.id.recycler);
+        rv.setLayoutManager(new LinearLayoutManager(requireContext()));
+        adapter = new OrdersAdapter(order -> {
+            if (getActivity() != null) OrderNavigator.open(getActivity(), order.orderId);
+        });
+        rv.setAdapter(adapter);
+
+        vm = new ViewModelProvider(this).get(OrderListVM.class);
+        vm.orders.observe(getViewLifecycleOwner(), list -> adapter.submitList(list));
+    }
+
+    public static class OrderListVM extends androidx.lifecycle.AndroidViewModel {
+        public final androidx.lifecycle.LiveData<java.util.List<OrderEntity>> orders;
+        public OrderListVM(@NonNull android.app.Application app) {
+            super(app);
+            OrderDao dao = AppDatabase.getInstance(app).orderDao();
+            orders = dao.getAllOrders(); // assumes you have this; if not, add @Query in OrderDao
+        }
+    }
+}
