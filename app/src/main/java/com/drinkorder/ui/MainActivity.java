@@ -2,17 +2,21 @@ package com.drinkorder.ui;
 
 import android.content.Intent;
 import android.os.Bundle;
+
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
+
 import com.drinkorder.R;
 import com.drinkorder.ui.cart.CartFragment;
 import com.drinkorder.ui.home.HomeFragment;
-import com.drinkorder.ui.orders.OrdersFragment;
-import com.drinkorder.ui.map.MapActivity;   // 👈 import MapActivity
+import com.drinkorder.ui.order.OrdersFragment;   // ✅ Đúng fragment có OrderNavigator
+import com.drinkorder.ui.map.MapActivity;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 public class MainActivity extends AppCompatActivity {
-  @Override protected void onCreate(Bundle b){
+
+  @Override
+  protected void onCreate(Bundle b) {
     super.onCreate(b);
     setContentView(R.layout.activity_main);
 
@@ -25,13 +29,14 @@ public class MainActivity extends AppCompatActivity {
         return true;
 
       } else if (id == R.id.tab_orders) {
+        // ✅ Mở danh sách Orders có click → OrderDetailFragment
         replaceFragment(new OrdersFragment());
         return true;
 
       } else if (id == R.id.tab_map) {
-        // 👉 Trường hợp Map: mở Activity mới
+        // Giữ logic mở bản đồ
         startActivity(new Intent(this, MapActivity.class));
-        return false; // hoặc true: tuỳ bạn có muốn giữ trạng thái chọn Map hay không
+        return false; // hoặc true tuỳ bạn muốn giữ trạng thái chọn Map hay không
 
       } else {
         replaceFragment(new HomeFragment());
@@ -39,6 +44,7 @@ public class MainActivity extends AppCompatActivity {
       }
     });
 
+    // Mặc định mở Home
     nav.setSelectedItemId(R.id.tab_home);
   }
 

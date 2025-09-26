@@ -1,0 +1,61 @@
+package com.drinkorder.ui.order;
+
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.DiffUtil;
+import androidx.recyclerview.widget.ListAdapter;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.drinkorder.R;
+import com.drinkorder.data.db.entity.OrderEntity;
+
+public class OrdersAdapter extends ListAdapter<OrderEntity, OrdersAdapter.VH> {
+
+    public interface OnOrderClick { void onClick(OrderEntity order); }
+    private final OnOrderClick onClick;
+
+    public OrdersAdapter(OnOrderClick onClick) {
+        super(DIFF);
+        this.onClick = onClick;
+    }
+
+    static final DiffUtil.ItemCallback<OrderEntity> DIFF = new DiffUtil.ItemCallback<OrderEntity>() {
+        @Override public boolean areItemsTheSame(@NonNull OrderEntity a, @NonNull OrderEntity b) {
+            return a.orderId == b.orderId;
+        }
+        @Override public boolean areContentsTheSame(@NonNull OrderEntity a, @NonNull OrderEntity b) {
+            return a.status.equals(b.status) && Float.compare(a.totalAmount, b.totalAmount) == 0 && a.createdAt.equals(b.createdAt);
+        }
+    };
+
+    @NonNull @Override
+    public VH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View v = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_order, parent, false);
+        return new VH(v);
+    }
+
+    @Override
+    public void onBindViewHolder(@NonNull VH h, int position) {
+        OrderEntity o = getItem(position);
+        h.tvId.setText("#" + o.orderId);
+        h.tvStatus.setText(o.status != null ? o.status : "");
+        h.tvTotal.setText(String.format("%.0f", o.totalAmount));
+        h.itemView.setOnClickListener(v -> {
+            if (onClick != null) onClick.onClick(o);
+        });
+    }
+
+    static class VH extends RecyclerView.ViewHolder {
+        TextView tvId, tvStatus, tvTotal;
+        VH(@NonNull View v) {
+            super(v);
+            tvId = v.findViewById(R.id.tvId);
+            tvStatus = v.findViewById(R.id.tvStatus);
+            tvTotal = v.findViewById(R.id.tvTotal);
+        }
+    }
+}

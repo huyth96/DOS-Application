@@ -222,6 +222,19 @@ import com.drinkorder.data.db.entity.OrderItemEntity;
   @Transaction
   @Query("SELECT * FROM orders WHERE userId=:uid ORDER BY createdAt DESC")
   LiveData<java.util.List<OrderEntity>> byUser(int uid);
+
+  // ====== Auto-added for Order Detail ======
+  @androidx.room.Transaction
+  @androidx.room.Query("SELECT * FROM orders WHERE orderId = :orderId LIMIT 1")
+  androidx.lifecycle.LiveData<com.drinkorder.data.db.pojo.OrderWithItems> getOrderWithItems(int orderId);
+
+  @androidx.room.Transaction
+  @androidx.room.Query("SELECT * FROM order_items WHERE orderId = :orderId")
+  androidx.lifecycle.LiveData<java.util.List<com.drinkorder.data.db.pojo.OrderItemWithProduct>> getItemsWithProduct(int orderId);
+  // =========================================
+
+    @androidx.room.Query("SELECT * FROM orders ORDER BY createdAt DESC")
+    androidx.lifecycle.LiveData<java.util.List<com.drinkorder.data.db.entity.OrderEntity>> getAllOrders();
 }
 
 
@@ -385,6 +398,53 @@ public class UserEntity {
   @NonNull public String passwordHash;
   public String fullName, email, phone, role;
   public long createdAt;
+}
+
+
+==============================
+File: main\java\com\drinkorder\data\db\pojo\OrderItemWithProduct.java
+==============================
+package com.drinkorder.data.db.pojo;
+import androidx.room.Embedded;
+import androidx.room.Relation;
+import com.drinkorder.data.db.entity.OrderItemEntity;
+import com.drinkorder.data.db.entity.ProductEntity;
+
+/** One order item + its product detail */
+public class OrderItemWithProduct {
+    @Embedded public OrderItemEntity item;
+
+    @Relation(
+        parentColumn = "productId",
+        entityColumn = "productId"
+    )
+    public ProductEntity product;
+}
+
+
+==============================
+File: main\java\com\drinkorder\data\db\pojo\OrderWithItems.java
+==============================
+package com.drinkorder.data.db.pojo;
+import androidx.room.Embedded;
+import androidx.room.Relation;
+import java.util.List;
+import com.drinkorder.data.db.entity.OrderEntity;
+import com.drinkorder.data.db.entity.OrderItemEntity;
+
+/**
+ * Order + list of items; each item contains its Product via nested relation.
+ * Room will resolve nested @Relation to OrderItemWithProduct automatically.
+ */
+public class OrderWithItems {
+    @Embedded public OrderEntity order;
+
+    @Relation(
+        entity = OrderItemEntity.class,
+        parentColumn = "orderId",
+        entityColumn = "orderId"
+    )
+    public List<OrderItemWithProduct> items;
 }
 
 
@@ -1076,6 +1136,514 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
 
 
 ==============================
+File: main\java\com\drinkorder\ui\order\OrderDetailFragment.java
+==============================
+package com.drinkorder.ui.order;
+
+import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.drinkorder.R;
+import com.drinkorder.data.db.pojo.OrderItemWithProduct;
+import com.drinkorder.data.db.pojo.OrderWithItems;
+
+import java.lang.reflect.Field;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
+public class OrderDetailFragment extends Fragment {
+
+    public static final String ARG_ORDER_ID = "order_id";
+
+    private OrderDetailVM vm;
+    private OrderLineAdapter adapter;
+
+    private TextView tvOrderId, tvStatus, tvDate, tvTotal;
+    private RecyclerView rvLines;
+
+    @Nullable @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.fragment_order_detail, container, false);
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View v, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(v, savedInstanceState);
+
+        tvOrderId = v.findViewById(R.id.tvOrderId);
+        tvStatus  = v.findViewById(R.id.tvStatus);
+        tvDate    = v.findViewById(R.id.tvDate);
+        tvTotal   = v.findViewById(R.id.tvTotal);
+        rvLines   = v.findViewById(R.id.rvLines);
+
+        rvLines.setLayoutManager(new LinearLayoutManager(requireContext()));
+        adapter = new OrderLineAdapter(); // đã dùng double trong Adapter này
+        rvLines.setAdapter(adapter);
+
+        vm = new ViewModelProvider(this).get(OrderDetailVM.class);
+
+        int orderId = getArguments() != null ? getArguments().getInt(ARG_ORDER_ID, -1) : -1;
+        if (orderId == -1) {
+            tvStatus.setText("No order id");
+            return;
+        }
+        vm.setOrderId(orderId);
+
+        vm.order.observe(getViewLifecycleOwner(), this::bindOrder);
+    }
+
+    private void bindOrder(OrderWithItems data) {
+        if (data == null || data.order == null) return;
+
+        // orderId (field này chắc chắn có)
+        tvOrderId.setText("#" + getIntField(data.order, new String[]{"orderId", "id"}));
+
+        // status: thử nhiều tên
+        String status = getStringField(data.order, new String[]{"status","orderStatus","state","orderState"});
+        tvStatus.setText(safe(status));
+
+        // createdAt: thử nhiều tên; nhận long/Long
+        long created = getLongField(data.order, new String[]{"createdAt","createdTime","createdOn","timestamp","createdAtMillis"});
+        tvDate.setText(created > 0 ? formatDate(created) : "");
+
+        // total: nếu entity có, dùng; nếu không, tự tính từ items (double)
+        double total = getDoubleField(data.order, new String[]{"totalAmount","total","grandTotal","amount"});
+        if (total <= 0d) total = computeTotal(data);
+        tvTotal.setText(String.format(Locale.getDefault(), "%.0f", total));
+
+        adapter.submitList(data.items);
+    }
+
+    /** Tính tổng bằng double để tránh lossy-conversion */
+    private double computeTotal(OrderWithItems data) {
+        if (data.items == null) return 0d;
+        double s = 0d;
+        for (OrderItemWithProduct row : data.items) {
+            int q = (int) getNumberField(row.item, new String[]{"quantity","qty","count"}, 0);
+            double p = getDoubleField(row.item, new String[]{"unitPrice","price","unit_cost","unitCost"});
+            s += q * p;
+        }
+        return s;
+    }
+
+    private String formatDate(long epochMillis) {
+        Date d = new Date(epochMillis);
+        return new SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault()).format(d);
+    }
+
+    private String safe(String s) { return s == null ? "" : s; }
+
+    // ===================== Reflection helpers =====================
+    private static String getStringField(Object obj, String[] names) {
+        Object v = getFieldValue(obj, names);
+        return v == null ? null : String.valueOf(v);
+    }
+
+    private static int getIntField(Object obj, String[] names) {
+        Object v = getFieldValue(obj, names);
+        if (v instanceof Number) return ((Number) v).intValue();
+        try { return v == null ? 0 : Integer.parseInt(v.toString()); } catch (Exception e) { return 0; }
+    }
+
+    private static long getLongField(Object obj, String[] names) {
+        Object v = getFieldValue(obj, names);
+        if (v instanceof Number) return ((Number) v).longValue();
+        try { return v == null ? 0L : Long.parseLong(v.toString()); } catch (Exception e) { return 0L; }
+    }
+
+    private static double getDoubleField(Object obj, String[] names) {
+        Object v = getFieldValue(obj, names);
+        if (v instanceof Number) return ((Number) v).doubleValue();
+        try { return v == null ? 0d : Double.parseDouble(v.toString()); } catch (Exception e) { return 0d; }
+    }
+
+    private static double getNumberField(Object obj, String[] names, double def) {
+        Object v = getFieldValue(obj, names);
+        if (v instanceof Number) return ((Number) v).doubleValue();
+        try { return v == null ? def : Double.parseDouble(v.toString()); } catch (Exception e) { return def; }
+    }
+
+    private static Object getFieldValue(Object obj, String[] names) {
+        if (obj == null) return null;
+        Class<?> c = obj.getClass();
+        for (String name : names) {
+            try {
+                Field f = c.getField(name); // public field
+                f.setAccessible(true);
+                return f.get(obj);
+            } catch (Exception ignore) {
+                try {
+                    Field f = c.getDeclaredField(name); // private/protected
+                    f.setAccessible(true);
+                    return f.get(obj);
+                } catch (Exception ignore2) {}
+            }
+        }
+        return null;
+    }
+}
+
+
+==============================
+File: main\java\com\drinkorder\ui\order\OrderDetailVM.java
+==============================
+package com.drinkorder.ui.order;
+
+import android.app.Application;
+import androidx.annotation.NonNull;
+import androidx.lifecycle.AndroidViewModel;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.MediatorLiveData;
+import androidx.lifecycle.MutableLiveData;
+import androidx.lifecycle.Transformations;
+
+import com.drinkorder.data.db.AppDatabase;
+import com.drinkorder.data.db.dao.OrderDao;
+import com.drinkorder.data.db.pojo.OrderWithItems;
+
+public class OrderDetailVM extends AndroidViewModel {
+    private final OrderDao orderDao;
+    private final MutableLiveData<Integer> orderId = new MutableLiveData<>();
+    public final LiveData<OrderWithItems> order;
+
+    public OrderDetailVM(@NonNull Application app) {
+        super(app);
+        AppDatabase db = AppDatabase.get(app);
+        orderDao = db.orderDao();
+
+        order = Transformations.switchMap(orderId, id -> {
+            if (id == null) return new MediatorLiveData<>();
+            return orderDao.getOrderWithItems(id);
+        });
+    }
+
+    public void setOrderId(int id) {
+        Integer cur = orderId.getValue();
+        if (cur == null || cur != id) orderId.setValue(id);
+    }
+}
+
+
+==============================
+File: main\java\com\drinkorder\ui\order\OrderLineAdapter.java
+==============================
+package com.drinkorder.ui.order;
+
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.DiffUtil;
+import androidx.recyclerview.widget.ListAdapter;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.drinkorder.R;
+import com.drinkorder.data.db.pojo.OrderItemWithProduct;
+
+public class OrderLineAdapter extends ListAdapter<OrderItemWithProduct, OrderLineAdapter.VH> {
+
+    public OrderLineAdapter() {
+        super(DIFF);
+    }
+
+    /** So sánh từng dòng dựa vào id, số lượng và đơn giá (double) */
+    static final DiffUtil.ItemCallback<OrderItemWithProduct> DIFF =
+            new DiffUtil.ItemCallback<OrderItemWithProduct>() {
+                @Override
+                public boolean areItemsTheSame(@NonNull OrderItemWithProduct a, @NonNull OrderItemWithProduct b) {
+                    if (a.item == null || b.item == null) return false;
+                    return a.item.orderItemId == b.item.orderItemId;
+                }
+
+                @Override
+                public boolean areContentsTheSame(@NonNull OrderItemWithProduct a, @NonNull OrderItemWithProduct b) {
+                    String an = (a.product != null && a.product.name != null) ? a.product.name : "";
+                    String bn = (b.product != null && b.product.name != null) ? b.product.name : "";
+
+                    int aq = (a.item != null) ? a.item.quantity : 0;
+                    int bq = (b.item != null) ? b.item.quantity : 0;
+
+                    double ap = (a.item != null) ? a.item.unitPrice : 0d;
+                    double bp = (b.item != null) ? b.item.unitPrice : 0d;
+
+                    return an.equals(bn)
+                            && aq == bq
+                            && Double.compare(ap, bp) == 0;   // dùng Double cho double
+                }
+            };
+
+    @NonNull @Override
+    public VH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View v = LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.item_order_line, parent, false);
+        return new VH(v);
+    }
+
+    @Override
+    public void onBindViewHolder(@NonNull VH h, int position) {
+        OrderItemWithProduct row = getItem(position);
+
+        String name = (row.product != null && row.product.name != null)
+                ? row.product.name : "(unknown)";
+
+        int qty = (row.item != null) ? row.item.quantity : 0;
+        double price = (row.item != null) ? row.item.unitPrice : 0d;
+        double total = qty * price;
+
+        h.tvName.setText(name);
+        h.tvQty.setText(String.valueOf(qty));
+        h.tvUnit.setText(String.format("%.0f", price));
+        h.tvLineTotal.setText(String.format("%.0f", total));
+    }
+
+    static class VH extends RecyclerView.ViewHolder {
+        TextView tvName, tvQty, tvUnit, tvLineTotal;
+        VH(@NonNull View v) {
+            super(v);
+            tvName = v.findViewById(R.id.tvName);
+            tvQty = v.findViewById(R.id.tvQty);
+            tvUnit = v.findViewById(R.id.tvUnit);
+            tvLineTotal = v.findViewById(R.id.tvLineTotal);
+        }
+    }
+}
+
+
+==============================
+File: main\java\com\drinkorder\ui\order\OrderNavigator.java
+==============================
+package com.drinkorder.ui.order;
+
+import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentManager;
+import androidx.fragment.app.FragmentTransaction;
+
+public class OrderNavigator {
+    public static void open(FragmentActivity activity, int orderId) {
+        OrderDetailFragment f = new OrderDetailFragment();
+        android.os.Bundle b = new android.os.Bundle();
+        b.putInt(OrderDetailFragment.ARG_ORDER_ID, orderId);
+        f.setArguments(b);
+
+        FragmentManager fm = activity.getSupportFragmentManager();
+        FragmentTransaction tx = fm.beginTransaction();
+        tx.replace(com.drinkorder.R.id.container, f);
+        tx.addToBackStack("order_detail");
+        tx.commit();
+    }
+}
+
+
+==============================
+File: main\java\com\drinkorder\ui\order\OrdersAdapter.java
+==============================
+package com.drinkorder.ui.order;
+
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.TextView;
+
+import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.DiffUtil;
+import androidx.recyclerview.widget.ListAdapter;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.drinkorder.R;
+import com.drinkorder.data.db.entity.OrderEntity;
+
+import java.lang.reflect.Field;
+import java.util.Locale;
+
+public class OrdersAdapter extends ListAdapter<OrderEntity, OrdersAdapter.VH> {
+
+    public interface OnOrderClick { void onClick(OrderEntity order); }
+    private final OnOrderClick onClick;
+
+    public OrdersAdapter(OnOrderClick onClick) {
+        super(DIFF);
+        this.onClick = onClick;
+    }
+
+    /** So sánh linh hoạt theo nhiều tên field, tránh .equals cho kiểu nguyên thủy */
+    static final DiffUtil.ItemCallback<OrderEntity> DIFF = new DiffUtil.ItemCallback<OrderEntity>() {
+        @Override
+        public boolean areItemsTheSame(@NonNull OrderEntity a, @NonNull OrderEntity b) {
+            // ưu tiên field orderId, nếu thiếu thì thử "id"
+            int aid = getIntField(a, new String[]{"orderId", "id"});
+            int bid = getIntField(b, new String[]{"orderId", "id"});
+            return aid == bid;
+        }
+
+        @Override
+        public boolean areContentsTheSame(@NonNull OrderEntity a, @NonNull OrderEntity b) {
+            String as = getStringField(a, new String[]{"status","orderStatus","state","orderState"});
+            String bs = getStringField(b, new String[]{"status","orderStatus","state","orderState"});
+
+            double at = getDoubleField(a, new String[]{"totalAmount","total","grandTotal","amount"});
+            double bt = getDoubleField(b, new String[]{"totalAmount","total","grandTotal","amount"});
+
+            long ac = getLongField(a, new String[]{"createdAt","createdTime","createdOn","timestamp","createdAtMillis"});
+            long bc = getLongField(b, new String[]{"createdAt","createdTime","createdOn","timestamp","createdAtMillis"});
+
+            return safe(as).equals(safe(bs))
+                    && Double.compare(at, bt) == 0
+                    && ac == bc;
+        }
+    };
+
+    @NonNull @Override
+    public VH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View v = LayoutInflater.from(parent.getContext())
+                .inflate(R.layout.item_order, parent, false);
+        return new VH(v);
+    }
+
+    @Override
+    public void onBindViewHolder(@NonNull VH h, int position) {
+        OrderEntity o = getItem(position);
+
+        int id = getIntField(o, new String[]{"orderId","id"});
+        String status = getStringField(o, new String[]{"status","orderStatus","state","orderState"});
+        double total = getDoubleField(o, new String[]{"totalAmount","total","grandTotal","amount"});
+
+        h.tvId.setText("#" + id);
+        h.tvStatus.setText(safe(status));
+        h.tvTotal.setText(String.format(Locale.getDefault(), "%.0f", total));
+
+        h.itemView.setOnClickListener(v -> {
+            if (onClick != null) onClick.onClick(o);
+        });
+    }
+
+    static class VH extends RecyclerView.ViewHolder {
+        TextView tvId, tvStatus, tvTotal;
+        VH(@NonNull View v) {
+            super(v);
+            tvId = v.findViewById(R.id.tvId);
+            tvStatus = v.findViewById(R.id.tvStatus);
+            tvTotal = v.findViewById(R.id.tvTotal);
+        }
+    }
+
+    // --------------------- Helpers (reflection an toàn) ---------------------
+    private static String safe(String s) { return s == null ? "" : s; }
+
+    private static Object getFieldValue(Object obj, String[] names) {
+        if (obj == null) return null;
+        Class<?> c = obj.getClass();
+        for (String name : names) {
+            try {
+                Field f = c.getField(name); // public
+                f.setAccessible(true);
+                return f.get(obj);
+            } catch (Exception ignore) {
+                try {
+                    Field f = c.getDeclaredField(name); // private/protected
+                    f.setAccessible(true);
+                    return f.get(obj);
+                } catch (Exception ignore2) {}
+            }
+        }
+        return null;
+    }
+
+    private static String getStringField(Object obj, String[] names) {
+        Object v = getFieldValue(obj, names);
+        return v == null ? null : String.valueOf(v);
+    }
+
+    private static int getIntField(Object obj, String[] names) {
+        Object v = getFieldValue(obj, names);
+        if (v instanceof Number) return ((Number) v).intValue();
+        try { return v == null ? 0 : Integer.parseInt(v.toString()); } catch (Exception e) { return 0; }
+    }
+
+    private static long getLongField(Object obj, String[] names) {
+        Object v = getFieldValue(obj, names);
+        if (v instanceof Number) return ((Number) v).longValue();
+        try { return v == null ? 0L : Long.parseLong(v.toString()); } catch (Exception e) { return 0L; }
+    }
+
+    private static double getDoubleField(Object obj, String[] names) {
+        Object v = getFieldValue(obj, names);
+        if (v instanceof Number) return ((Number) v).doubleValue();
+        try { return v == null ? 0d : Double.parseDouble(v.toString()); } catch (Exception e) { return 0d; }
+    }
+}
+
+
+==============================
+File: main\java\com\drinkorder\ui\order\OrdersFragment.java
+==============================
+package com.drinkorder.ui.order;
+
+import android.os.Bundle;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.drinkorder.R;
+import com.drinkorder.data.db.AppDatabase;
+import com.drinkorder.data.db.dao.OrderDao;
+import com.drinkorder.data.db.entity.OrderEntity;
+
+public class OrdersFragment extends Fragment {
+
+    private OrdersAdapter adapter;
+    private OrderListVM vm;
+
+    @Nullable @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        return inflater.inflate(R.layout.simple_recycler, container, false);
+    }
+
+    @Override
+    public void onViewCreated(@NonNull View v, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(v, savedInstanceState);
+        RecyclerView rv = v.findViewById(R.id.recycler);
+        rv.setLayoutManager(new LinearLayoutManager(requireContext()));
+        adapter = new OrdersAdapter(order -> {
+            if (getActivity() != null) OrderNavigator.open(getActivity(), order.orderId);
+        });
+        rv.setAdapter(adapter);
+
+        vm = new ViewModelProvider(this).get(OrderListVM.class);
+        vm.orders.observe(getViewLifecycleOwner(), list -> adapter.submitList(list));
+    }
+
+    public static class OrderListVM extends androidx.lifecycle.AndroidViewModel {
+        public final androidx.lifecycle.LiveData<java.util.List<OrderEntity>> orders;
+        public OrderListVM(@NonNull android.app.Application app) {
+            super(app);
+            OrderDao dao = AppDatabase.get(app).orderDao();
+            orders = dao.getAllOrders(); // assumes you have this; if not, add @Query in OrderDao
+        }
+    }
+}
+
+
+==============================
 File: main\java\com\drinkorder\ui\orders\OrdersFragment.java
 ==============================
 package com.drinkorder.ui.orders;
@@ -1520,6 +2088,58 @@ File: main\res\layout\fragment_orders.xml
 
 
 ==============================
+File: main\res\layout\fragment_order_detail.xml
+==============================
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:id="@+id/tvOrderId"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textStyle="bold"
+        android:textSize="18sp"
+        android:text="#1234" />
+
+    <TextView
+        android:id="@+id/tvStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Pending" />
+
+    <TextView
+        android:id="@+id/tvDate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="01/01/2025 12:00" />
+
+    <TextView
+        android:id="@+id/tvTotal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textStyle="bold"
+        android:textSize="16sp"
+        android:text="0"
+        android:layout_marginTop="4dp"/>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="8dp" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvLines"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"/>
+
+</LinearLayout>
+
+
+==============================
 File: main\res\layout\fragment_product_detail.xml
 ==============================
 <?xml version="1.0" encoding="utf-8"?>
@@ -1574,6 +2194,81 @@ File: main\res\layout\item_cart.xml
 
 
 ==============================
+File: main\res\layout\item_order.xml
+==============================
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="12dp">
+
+    <TextView
+        android:id="@+id/tvId"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="#1001"
+        android:textStyle="bold"/>
+
+    <TextView
+        android:id="@+id/tvStatus"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="12dp"
+        android:text="Paid"/>
+
+    <TextView
+        android:id="@+id/tvTotal"
+        android:layout_width="72dp"
+        android:layout_height="wrap_content"
+        android:gravity="end"
+        android:text="120000"/>
+</LinearLayout>
+
+
+==============================
+File: main\res\layout\item_order_line.xml
+==============================
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="12dp">
+
+    <TextView
+        android:id="@+id/tvName"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="Product name"/>
+
+    <TextView
+        android:id="@+id/tvQty"
+        android:layout_width="40dp"
+        android:layout_height="wrap_content"
+        android:gravity="end"
+        android:text="1"/>
+
+    <TextView
+        android:id="@+id/tvUnit"
+        android:layout_width="64dp"
+        android:layout_height="wrap_content"
+        android:gravity="end"
+        android:text="10000"/>
+
+    <TextView
+        android:id="@+id/tvLineTotal"
+        android:layout_width="72dp"
+        android:layout_height="wrap_content"
+        android:gravity="end"
+        android:textStyle="bold"
+        android:text="10000"/>
+</LinearLayout>
+
+
+==============================
 File: main\res\layout\item_product.xml
 ==============================
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
@@ -1586,6 +2281,20 @@ File: main\res\layout\item_product.xml
   </LinearLayout>
   <Button android:id="@+id/btnAdd" android:text="Add" android:layout_width="wrap_content" android:layout_height="wrap_content"/>
 </LinearLayout>
+
+
+==============================
+File: main\res\layout\simple_recycler.xml
+==============================
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recycler"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+</FrameLayout>
 
 
 ==============================
