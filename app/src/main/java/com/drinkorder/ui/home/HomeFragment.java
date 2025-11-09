@@ -21,6 +21,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.drinkorder.R;
 import com.drinkorder.data.db.entity.CategoryEntity;
 import com.drinkorder.data.db.entity.ProductEntity;
+import com.drinkorder.data.db.pojo.CartItemWithProduct;
 import com.drinkorder.ui.detail.ProductDetailFragment;
 import com.drinkorder.ui.map.MapActivity;
 import com.drinkorder.vm.CartVM;
@@ -112,8 +113,9 @@ public class HomeFragment extends Fragment {
     cartVM.cart.observe(getViewLifecycleOwner(), list -> {
       int total = 0;
       if (list != null) {
-        for (com.drinkorder.data.db.entity.CartItemEntity item : list) {
-          total += item.quantity;
+        for (CartItemWithProduct row : list) {
+          if (row == null || row.item == null) continue;
+          total += row.item.quantity;
         }
       }
       if (total > 0) {

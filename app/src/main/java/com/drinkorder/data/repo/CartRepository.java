@@ -1,15 +1,18 @@
 package com.drinkorder.data.repo;
 import androidx.lifecycle.LiveData;
+
 import com.drinkorder.data.db.dao.CartDao;
 import com.drinkorder.data.db.entity.CartItemEntity;
 import com.drinkorder.data.db.entity.ProductEntity;
+import com.drinkorder.data.db.pojo.CartItemWithProduct;
+
 import java.util.List;
 import java.util.concurrent.Executors;
 
 public class CartRepository {
   private final CartDao cartDao;
   public CartRepository(CartDao cartDao){ this.cartDao=cartDao; }
-  public LiveData<java.util.List<CartItemEntity>> cart(){ return cartDao.all(); }
+  public LiveData<java.util.List<CartItemWithProduct>> cart(){ return cartDao.allWithProducts(); }
   public void add(ProductEntity p){
     Executors.newSingleThreadExecutor().execute(() -> {
       java.util.List<CartItemEntity> now = cartDao.allNow();
