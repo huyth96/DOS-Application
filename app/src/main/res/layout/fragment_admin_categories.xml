@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <!-- Nút back mới thêm -->
+    <ImageButton
+        android:id="@+id/btnBack"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@drawable/ic_back_24"
+    android:contentDescription="Quay lại trang chủ"
+    android:background="?android:attr/selectableItemBackgroundBorderless"
+    android:layout_marginBottom="16dp" />
+
+    <EditText android:id="@+id/etCategoryName" android:hint="Tên danh mục" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+    <EditText android:id="@+id/etCategoryDescription" android:hint="Mô tả" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+    <Button android:id="@+id/btnAddCategory" android:text="Thêm" android:layout_width="match_parent" android:layout_height="wrap_content"/>
+
+    <androidx.recyclerview.widget.RecyclerView android:id="@+id/rvCategories" android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1"/>
+</LinearLayout>
