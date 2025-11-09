@@ -4,8 +4,7 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
-import android.widget.ImageView;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.annotation.NonNull;
@@ -13,10 +12,16 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.resource.bitmap.CenterCrop;
+import com.bumptech.glide.request.RequestOptions;
 import com.drinkorder.R;
 import com.drinkorder.data.db.entity.ProductEntity;
 import com.drinkorder.vm.CartVM;
 import com.drinkorder.vm.ProductDetailVM;
+import com.google.android.material.button.MaterialButton;
+import com.google.android.material.imageview.ShapeableImageView;
+import java.text.NumberFormat;
+import java.util.Locale;
 
 public class ProductDetailFragment extends Fragment {
 
@@ -32,9 +37,17 @@ public class ProductDetailFragment extends Fragment {
 
   private ProductDetailVM vm;
   private CartVM cartVM;
-  private ImageView img;
-  private TextView tvName, tvPrice, tvDesc;
-  private Button btnAdd;
+
+  private ShapeableImageView img;
+  private TextView tvBrand;
+  private TextView tvName;
+  private TextView tvPrice;
+  private TextView tvDesc;
+  private TextView tvMetaRating;
+  private TextView tvMetaDelivery;
+  private TextView tvMetaTime;
+  private MaterialButton btnAdd;
+  private final NumberFormat priceFormat = NumberFormat.getInstance(new Locale("vi", "VN"));
 
   @Nullable @Override
   public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -44,19 +57,35 @@ public class ProductDetailFragment extends Fragment {
   @Override
   public void onViewCreated(@NonNull View v, @Nullable Bundle savedInstanceState) {
     super.onViewCreated(v, savedInstanceState);
+
     img = v.findViewById(R.id.imgCover);
+    tvBrand = v.findViewById(R.id.tvBrand);
     tvName = v.findViewById(R.id.tvName);
     tvPrice = v.findViewById(R.id.tvPrice);
     tvDesc = v.findViewById(R.id.tvDesc);
+    tvMetaRating = v.findViewById(R.id.tvMetaRating);
+    tvMetaDelivery = v.findViewById(R.id.tvMetaDelivery);
+    tvMetaTime = v.findViewById(R.id.tvMetaTime);
     btnAdd = v.findViewById(R.id.btnAddToCart);
+
+    ImageButton btnBack = v.findViewById(R.id.btnBack);
+    ImageButton btnFavorite = v.findViewById(R.id.btnFavorite);
+
+    priceFormat.setMaximumFractionDigits(0);
+
+    btnBack.setOnClickListener(view ->
+        requireActivity().getOnBackPressedDispatcher().onBackPressed());
+
+    btnFavorite.setOnClickListener(view ->
+        Toast.makeText(getContext(), "Tính năng yêu thích sẽ sớm ra mắt!", Toast.LENGTH_SHORT).show());
 
     vm = new ViewModelProvider(this).get(ProductDetailVM.class);
     cartVM = new ViewModelProvider(requireActivity()).get(CartVM.class);
 
     int productId = getArguments() != null ? getArguments().getInt(ARG_PRODUCT_ID, -1) : -1;
     if (productId <= 0) {
-      Toast.makeText(getContext(), "Product invalid", Toast.LENGTH_SHORT).show();
-      requireActivity().onBackPressed();
+      Toast.makeText(getContext(), "Không tìm thấy sản phẩm", Toast.LENGTH_SHORT).show();
+      requireActivity().getOnBackPressedDispatcher().onBackPressed();
       return;
     }
 
@@ -65,16 +94,36 @@ public class ProductDetailFragment extends Fragment {
 
   private void bindProduct(ProductEntity p) {
     if (p == null) return;
-    tvName.setText(p.name);
-    tvPrice.setText(String.valueOf((long)p.price));
-    tvDesc.setText(p.description == null ? "" : p.description);
-    Glide.with(this)
-            .load(p.imageUrl == null || p.imageUrl.isEmpty() ? R.drawable.ic_launcher_foreground : p.imageUrl)
-            .into(img);
 
-    btnAdd.setOnClickListener(v -> {
+    tvBrand.setText(resolveCategoryName(p.categoryId));
+    tvName.setText(p.name);
+    tvDesc.setText(p.description == null ? "Sản phẩm đang được nhiều khách hàng yêu thích." : p.description);
+    tvPrice.setText(formatPrice(p.price));
+
+    tvMetaRating.setText("4.8");
+    tvMetaDelivery.setText("Miễn phí");
+    tvMetaTime.setText("15 phút");
+
+    Glide.with(this)
+        .load(p.imageUrl == null || p.imageUrl.isEmpty() ? R.drawable.bg_app_gradient : p.imageUrl)
+        .apply(new RequestOptions().transform(new CenterCrop()))
+        .into(img);
+
+    btnAdd.setOnClickListener(view -> {
       cartVM.add(p);
-      Toast.makeText(getContext(), "Đã thêm vào giỏ", Toast.LENGTH_SHORT).show();
+      Toast.makeText(getContext(), "Đã thêm vào giỏ hàng của bạn", Toast.LENGTH_SHORT).show();
     });
+  }
+
+  private String resolveCategoryName(int categoryId) {
+    return switch (categoryId) {
+      case 1 -> "Trà sữa";
+      case 2 -> "Cà phê";
+      default -> "Đồ uống";
+    };
+  }
+
+  private String formatPrice(double price) {
+    return priceFormat.format(Math.round(price)) + " đ";
   }
 }

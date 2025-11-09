@@ -1,7 +1,40 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
-    <!-- Base application theme. -->
-    <style name="Base.Theme.DrinkOrder" parent="Theme.Material3.DayNight.NoActionBar">
-        <!-- Customize your dark theme here. -->
-        <!-- <item name="colorPrimary">@color/my_dark_primary</item> -->
+    <style name="Base.Theme.DrinkOrder" parent="Theme.Material3.Light.NoActionBar">
+        <item name="colorPrimary">@color/brand_primary</item>
+        <item name="colorOnPrimary">@color/brand_on_primary</item>
+        <item name="colorPrimaryContainer">@color/brand_primary_container</item>
+
+        <item name="colorSecondary">@color/brand_secondary</item>
+        <item name="colorOnSecondary">@color/brand_on_secondary</item>
+        <item name="colorSecondaryContainer">@color/brand_secondary_container</item>
+
+        <item name="colorTertiary">@color/brand_tertiary</item>
+        <item name="colorOnTertiary">@color/brand_on_tertiary</item>
+        <item name="colorTertiaryContainer">@color/brand_tertiary_container</item>
+
+        <item name="colorSurface">@color/brand_surface</item>
+        <item name="colorSurfaceVariant">@color/brand_surface_variant</item>
+        <item name="colorSurfaceBright">@color/brand_surface_elevated</item>
+        <item name="colorOnSurface">@color/brand_on_surface</item>
+        <item name="colorOnSurfaceVariant">@color/brand_on_surface_variant</item>
+        <item name="colorOutline">@color/brand_outline</item>
+
+        <item name="android:colorBackground">@color/brand_background</item>
+        <item name="colorOnBackground">@color/brand_on_background</item>
+
+        <item name="colorError">@color/brand_error</item>
+        <item name="colorOnError">@color/brand_on_error</item>
+
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@color/brand_background</item>
+        <item name="android:windowBackground">@color/brand_background</item>
+        <item name="android:windowLightStatusBar">false</item>
+
+        <item name="materialCardViewStyle">@style/Widget.DrinkOrder.Card</item>
+        <item name="materialButtonStyle">@style/Widget.DrinkOrder.Button</item>
+        <item name="textInputStyle">@style/Widget.DrinkOrder.TextInputLayout</item>
+
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="toolbarStyle">@style/Widget.DrinkOrder.Toolbar</item>
     </style>
 </resources>

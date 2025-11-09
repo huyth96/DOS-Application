@@ -22,8 +22,8 @@
     <color name="brand_background">#EEF2FF</color>
     <color name="brand_on_background">#0A1324</color>
 
-    <color name="brand_surface_soft">#F7F8FF</color>
-    <color name="brand_muted_text">#667085</color>
+    <color name="brand_surface_soft">#1F2437</color>
+    <color name="brand_muted_text">#A5ADC6</color>
     <color name="brand_warning">#FFB547</color>
     <color name="brand_success">#2ED3A7</color>
 

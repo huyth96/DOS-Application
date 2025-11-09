@@ -1,13 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
-  <item android:id="@+id/tab_home" android:title="Home" android:icon="@android:drawable/ic_menu_view"/>
-  <item android:id="@+id/tab_cart" android:title="Cart" android:icon="@android:drawable/ic_menu_add"/>
-  <item android:id="@+id/tab_orders" android:title="Orders" android:icon="@android:drawable/ic_menu_agenda"/>
-  <item
-      android:id="@+id/tab_map"
-      android:title="Map"
-      android:icon="@android:drawable/ic_menu_mapmode"/>
-  <item
-      android:id="@+id/tab_profile"
-      android:icon="@drawable/ic_person"
-      android:title="Tài khoản" />
+    <item
+        android:id="@+id/tab_home"
+        android:icon="@drawable/ic_nav_home"
+        android:title="Trang chủ" />
+    <item
+        android:id="@+id/tab_cart"
+        android:icon="@drawable/ic_nav_cart"
+        android:title="Giỏ hàng" />
+    <item
+        android:id="@+id/tab_orders"
+        android:icon="@drawable/ic_nav_orders"
+        android:title="Đơn hàng" />
+    <item
+        android:id="@+id/tab_map"
+        android:icon="@drawable/ic_map_pin"
+        android:title="Bản đồ" />
+    <item
+        android:id="@+id/tab_profile"
+        android:icon="@drawable/ic_nav_profile"
+        android:title="Tài khoản" />
 </menu>

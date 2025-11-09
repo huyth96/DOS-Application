@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <style name="Widget.DrinkOrder.Button" parent="@style/Widget.Material3.Button">
+        <item name="android:textAllCaps">false</item>
+        <item name="shapeAppearanceOverlay">@style/ShapeAppearance.DrinkOrder.Large</item>
+    </style>
+
+    <style name="Widget.DrinkOrder.Card" parent="@style/Widget.Material3.CardView.Elevated">
+        <item name="cardCornerRadius">22dp</item>
+        <item name="strokeColor">@color/brand_outline</item>
+        <item name="strokeWidth">1dp</item>
+        <item name="cardBackgroundColor">@color/brand_surface_elevated</item>
+    </style>
+
+    <style name="Widget.DrinkOrder.TextInputLayout" parent="@style/Widget.Material3.TextInputLayout.OutlinedBox">
+        <item name="boxBackgroundMode">outline</item>
+        <item name="boxBackgroundColor">@color/brand_surface_elevated</item>
+        <item name="boxStrokeColor">@color/brand_outline</item>
+        <item name="boxStrokeWidth">1dp</item>
+        <item name="boxStrokeWidthFocused">2dp</item>
+        <item name="boxCornerRadiusTopStart">18dp</item>
+        <item name="boxCornerRadiusTopEnd">18dp</item>
+        <item name="boxCornerRadiusBottomStart">18dp</item>
+        <item name="boxCornerRadiusBottomEnd">18dp</item>
+        <item name="hintTextAppearance">@style/TextAppearance.Material3.BodyMedium</item>
+    </style>
+
+    <style name="Widget.DrinkOrder.Toolbar" parent="@style/Widget.Material3.Toolbar">
+        <item name="android:background">@color/brand_surface</item>
+        <item name="android:elevation">0dp</item>
+        <item name="titleTextColor">@color/brand_on_surface</item>
+    </style>
+
+    <style name="ShapeAppearance.DrinkOrder.Large" parent="@style/ShapeAppearance.Material3.Corner.Medium">
+        <item name="cornerSize">20dp</item>
+    </style>
+
+    <style name="Widget.DrinkOrder.Chip.Filter" parent="@style/Widget.Material3.Chip.Filter">
+        <item name="android:textAllCaps">false</item>
+        <item name="chipBackgroundColor">@color/chip_bg_selector</item>
+        <item name="chipStrokeColor">@color/chip_stroke_selector</item>
+        <item name="chipStrokeWidth">1dp</item>
+        <item name="android:textColor">@color/chip_text_selector</item>
+        <item name="android:textSize">14sp</item>
+        <item name="chipIconVisible">false</item>
+        <item name="checkedIconVisible">false</item>
+        <item name="android:paddingStart">20dp</item>
+        <item name="android:paddingEnd">20dp</item>
+        <item name="android:gravity">center</item>
+    </style>
+</resources>
