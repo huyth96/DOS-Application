@@ -9,6 +9,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 
 import com.drinkorder.R;
+import com.drinkorder.ui.admin.AdminCategoriesFragment;
 import com.drinkorder.ui.admin.AdminProductsFragment;
 import com.drinkorder.ui.cart.CartFragment;
 import com.drinkorder.ui.home.HomeFragment;
@@ -34,6 +35,9 @@ public class MainActivity extends AppCompatActivity {
       if (isAdmin) {
         if (id == R.id.tab_admin_products) {
           replaceFragment(new AdminProductsFragment());
+          return true;
+        } else if (id == R.id.tab_admin_categories) {
+          replaceFragment(new AdminCategoriesFragment());
           return true;
         } else if (id == R.id.tab_profile) {
           startActivity(new Intent(this, ProfileActivity.class));
@@ -73,8 +77,8 @@ public class MainActivity extends AppCompatActivity {
 
   private void replaceFragment(Fragment fragment) {
     getSupportFragmentManager()
-        .beginTransaction()
-        .replace(R.id.container, fragment)
-        .commit();
+            .beginTransaction()
+            .replace(R.id.container, fragment)
+            .commit();
   }
 }
