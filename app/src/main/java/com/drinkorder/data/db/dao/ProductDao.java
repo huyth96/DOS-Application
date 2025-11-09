@@ -11,4 +11,8 @@ import java.util.List;
   @Query("SELECT * FROM products WHERE productId=:pid LIMIT 1")
   ProductEntity byIdNow(int pid);
   @Insert(onConflict=OnConflictStrategy.REPLACE) void upsertAll(java.util.List<ProductEntity> list);
+
+  // Thêm query tìm kiếm theo tên (không phân biệt hoa thường)
+  @Query("SELECT * FROM products WHERE LOWER(name) LIKE '%' || LOWER(:query) || '%' ORDER BY name")
+  LiveData<List<ProductEntity>> searchByName(String query);
 }
