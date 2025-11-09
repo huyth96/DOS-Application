@@ -3,9 +3,12 @@ import androidx.lifecycle.LiveData;
 import androidx.room.*;
 import com.drinkorder.data.db.entity.ProductEntity;
 import java.util.List;
-@Dao public interface ProductDao {
+
+@Dao
+public interface ProductDao {
+
   @Query("SELECT * FROM products WHERE categoryId=:cid ORDER BY name")
-  LiveData<java.util.List<ProductEntity>> byCategory(int cid);
+  LiveData<List<ProductEntity>> byCategory(int cid);
 
   @Query("SELECT * FROM products WHERE productId=:pid LIMIT 1")
   LiveData<ProductEntity> byId(int pid);
@@ -13,14 +16,14 @@ import java.util.List;
   @Query("SELECT * FROM products WHERE productId=:pid LIMIT 1")
   ProductEntity byIdNow(int pid);
 
-  @Insert(onConflict=OnConflictStrategy.REPLACE)
-  void upsertAll(java.util.List<ProductEntity> list);
+  @Insert(onConflict = OnConflictStrategy.REPLACE)
+  void upsertAll(List<ProductEntity> list);
 
   @Query("SELECT * FROM products ORDER BY name")
-  LiveData<java.util.List<ProductEntity>> all();
+  LiveData<List<ProductEntity>> all();
 
   @Query("SELECT * FROM products ORDER BY name")
-  java.util.List<ProductEntity> allNow();
+  List<ProductEntity> allNow();
 
   @Insert(onConflict = OnConflictStrategy.REPLACE)
   long insert(ProductEntity product);
@@ -33,4 +36,8 @@ import java.util.List;
 
   @Query("DELETE FROM products WHERE productId=:productId")
   void deleteById(int productId);
+
+  // search theo tên không phân biệt hoa thường
+  @Query("SELECT * FROM products WHERE LOWER(name) LIKE '%' || LOWER(:query) || '%' ORDER BY name")
+  LiveData<List<ProductEntity>> searchByName(String query);
 }

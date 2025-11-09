@@ -106,7 +106,13 @@ public class HomeFragment extends Fragment {
     vm = new ViewModelProvider(this).get(HomeVM.class);
     cartVM = new ViewModelProvider(requireActivity()).get(CartVM.class);
 
-    vm.products.observe(getViewLifecycleOwner(), adapter::submit);
+    // Observe searchResults thay vì products
+    vm.searchResults.observe(getViewLifecycleOwner(), list -> {
+      adapter.submit(list);
+      if (list == null || list.isEmpty()) {
+        Toast.makeText(getContext(), "Không tìm thấy sản phẩm", Toast.LENGTH_SHORT).show();
+      }
+    });
     vm.categories.observe(getViewLifecycleOwner(), this::renderCategories);
     vm.selectedCategory.observe(getViewLifecycleOwner(), this::highlightSelectedCategory);
 
@@ -181,12 +187,15 @@ public class HomeFragment extends Fragment {
     }
   }
 
-  private void performSearch(CharSequence query) {
+  private void performSearch(CharSequence querySeq) {
+    String query = querySeq.toString().trim();
     if (TextUtils.isEmpty(query)) {
       Toast.makeText(getContext(), "Nhập tên đồ uống để tìm kiếm", Toast.LENGTH_SHORT).show();
+      vm.searchQuery.setValue("");  // Reset về list mặc định
       return;
     }
-    Toast.makeText(getContext(), "Tính năng tìm kiếm sẽ ra mắt sớm!", Toast.LENGTH_SHORT).show();
+    // Trigger tìm kiếm bằng cách set query vào VM
+    vm.searchQuery.setValue(query);
   }
 
   private void openDetail(ProductEntity item){
