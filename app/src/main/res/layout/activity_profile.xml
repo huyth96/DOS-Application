@@ -51,7 +51,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="18dp"
-                    android:text="Hồ sơ của bạn"
+                    android:text="Your profile"
                     android:textColor="@color/brand_on_primary"
                     android:textSize="22sp"
                     android:textStyle="bold" />
@@ -61,7 +61,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    android:text="Tên người dùng"
+                    android:text="Full name"
                     android:textColor="@color/brand_on_primary"
                     android:textSize="16sp" />
             </LinearLayout>
@@ -87,7 +87,7 @@
                 <TextView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:text="Thông tin đăng nhập"
+                    android:text="Account information"
                     android:textColor="@color/brand_on_surface"
                     android:textSize="16sp"
                     android:textStyle="bold" />
@@ -152,7 +152,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Số điện thoại"
+                        android:text="Phone number"
                         android:textColor="@color/brand_on_surface_variant"
                         android:textSize="13sp" />
 
@@ -174,7 +174,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Vai trò"
+                        android:text="Role"
                         android:textColor="@color/brand_on_surface_variant"
                         android:textSize="13sp" />
 
@@ -203,14 +203,14 @@
                 style="@style/Widget.Material3.Button.OutlinedButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Chỉnh sửa thông tin" />
+                android:text="Edit profile" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnLogout"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                android:text="Đăng xuất" />
+                android:text="Sign out" />
         </LinearLayout>
     </LinearLayout>
 </androidx.core.widget.NestedScrollView>

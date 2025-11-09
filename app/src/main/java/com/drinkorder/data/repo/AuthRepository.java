@@ -20,4 +20,7 @@ public class AuthRepository {
   public String getLoggedUserName() {
     return sp.getString("username", null);
   }
+  public String role(){
+    return sp.getString("role", "customer");
+  }
 }

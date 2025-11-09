@@ -55,6 +55,8 @@ public class SeedInitializer {
               p.stock = o.optInt("stock", 0);
               p.categoryId = o.getInt("categoryId");
               p.imageUrl = o.optString("imageUrl", "");
+              if (o.has("rating")) p.rating = o.optDouble("rating");
+              else p.rating = 4.5;
               list.add(p);
             }
             db.productDao().upsertAll(list);
