@@ -1,9 +1,39 @@
 {
-  "users":[{"username":"user1","passwordHash":"123456","fullName":"Nguyen Van A","role":"customer"}],
-  "categories":[{"name":"Trà sữa","description":"Các loại trà sữa"},{"name":"Cà phê","description":"Đồ uống cà phê"}],
-  "products":[
-    {"name":"Trà sữa truyền thống","description":"Vị trà đậm đà hòa quyện cùng sữa béo nhẹ, uống kèm trân châu mềm dẻo.","price":25000,"stock":100,"categoryId":1,"imageUrl":"https://images.unsplash.com/photo-1542826438-1b079c9285f2?auto=format&fit=crop&w=900&q=80"},
-    {"name":"Trà sữa trân châu","description":"Ly trà sữa thơm ngát với topping trân châu đen dẻo, ngọt thanh vừa miệng.","price":30000,"stock":80,"categoryId":1,"imageUrl":"https://images.unsplash.com/photo-1558640472-9d2a7deb7f62?auto=format&fit=crop&w=900&q=80"},
-    {"name":"Cà phê sữa đá","description":"Cà phê robusta pha phin truyền thống kết hợp sữa đặc béo ngậy, đậm chất Việt.","price":20000,"stock":120,"categoryId":2,"imageUrl":"https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=900&q=80"}
+  "users": [
+    {"username": "user1", "passwordHash": "123456", "fullName": "Nguyen Van A", "role": "customer"},
+    {"username": "admin", "passwordHash": "admin123", "fullName": "Admin", "role": "admin"}
+  ],
+  "categories": [
+    {"name": "Tra sua", "description": "Cac loai tra sua"},
+    {"name": "Ca phe", "description": "Do uong ca phe"}
+  ],
+  "products": [
+    {
+      "name": "Tra sua truyen thong",
+      "description": "Tra dam hoa quyen voi sua beo ngot, uong kem tran chau deo dai.",
+      "price": 25000,
+      "stock": 100,
+      "categoryId": 1,
+      "imageUrl": "https://images.unsplash.com/photo-1542826438-1b079c9285f2?auto=format&fit=crop&w=900&q=80",
+      "rating": 4.7
+    },
+    {
+      "name": "Tra sua tran chau",
+      "description": "Ly tra sua thom ngon voi topping tran chau den deo, ngot thanh vua mieng.",
+      "price": 30000,
+      "stock": 80,
+      "categoryId": 1,
+      "imageUrl": "https://images.unsplash.com/photo-1558640472-9d2a7deb7f62?auto=format&fit=crop&w=900&q=80",
+      "rating": 4.9
+    },
+    {
+      "name": "Ca phe sua da",
+      "description": "Ca phe robusta pha phin truyen thong ket hop sua dac beo ngay, dam chat Viet.",
+      "price": 20000,
+      "stock": 120,
+      "categoryId": 2,
+      "imageUrl": "https://images.unsplash.com/photo-1509042239860-f550ce710b93?auto=format&fit=crop&w=900&q=80",
+      "rating": 4.6
+    }
   ]
 }

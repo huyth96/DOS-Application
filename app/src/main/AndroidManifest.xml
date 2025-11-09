@@ -8,7 +8,6 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.DrinkOrder">
 
-        <!-- 🔑 API key cho Google Maps: phải nằm TRONG <application> -->
         <meta-data
             android:name="com.google.android.geo.API_KEY"
             android:value="@string/google_maps_key" />
@@ -16,10 +15,10 @@
         <activity
             android:name=".ui.map.MapActivity"
             android:exported="false"
-            android:label="Bản đồ" />
+            android:label="Ban do" />
 
-        <!-- MainActivity hoạt động bình thường, Login là launcher -->
         <activity android:name=".ui.MainActivity" />
+
         <activity
             android:name=".ui.login.LoginActivity"
             android:exported="true">
@@ -28,18 +27,26 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
         <activity
             android:name=".ui.login.RegisterActivity"
             android:exported="false"
-            android:label="Đăng ký"/>
+            android:label="Dang ky" />
+
         <activity
             android:name=".ui.login.ProfileActivity"
             android:exported="false"
-            android:label="Tài khoản" />
+            android:label="Tai khoan" />
+
         <activity
             android:name=".ui.login.EditProfileActivity"
             android:exported="false"
-            android:label="Chỉnh thông tin" />
+            android:label="Chinh sua thong tin" />
+
+        <activity
+            android:name=".ui.admin.AdminProductFormActivity"
+            android:exported="false"
+            android:label="Chinh sua san pham" />
 
     </application>
 </manifest>

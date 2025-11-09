@@ -10,5 +10,6 @@ public class ProductEntity {
   public double price;
   public Integer stock;
   public String imageUrl;
+  public Double rating;
   public int categoryId;
 }

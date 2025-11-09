@@ -5,14 +5,17 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
+
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.bitmap.CenterCrop;
 import com.bumptech.glide.request.RequestOptions;
 import com.drinkorder.R;
 import com.drinkorder.data.db.entity.ProductEntity;
 import com.google.android.material.imageview.ShapeableImageView;
+
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -28,9 +31,8 @@ public class ProductsAdapter extends RecyclerView.Adapter<ProductsAdapter.VH> {
     private final List<ProductEntity> data = new ArrayList<>();
     private final NumberFormat priceFormat = NumberFormat.getInstance(new Locale("vi", "VN"));
 
-    private static final String[] RATINGS = {"4.8", "4.6", "4.9", "4.7"};
-    private static final String[] ETA = {"15 phút", "12 phút", "20 phút", "18 phút"};
-    private static final String[] DELIVERY = {"Miễn phí", "12K", "Miễn phí", "9K"};
+    private static final String[] ETA = {"15 phut", "12 phut", "20 phut", "18 phut"};
+    private static final String[] DELIVERY = {"Free", "12K", "Free", "9K"};
 
     public ProductsAdapter(OnAdd onAdd, OnClick onClick){
         this.onAdd = onAdd;
@@ -54,15 +56,14 @@ public class ProductsAdapter extends RecyclerView.Adapter<ProductsAdapter.VH> {
     public void onBindViewHolder(@NonNull VH h, int position){
         ProductEntity e = data.get(position);
         h.title.setText(e.name);
-        h.subtitle.setText(e.description == null || e.description.isEmpty()
-                ? "Thức uống được ưa chuộng" : e.description);
-        h.rating.setText(RATINGS[position % RATINGS.length]);
+        h.subtitle.setText(resolveDescription(e.description));
+        h.rating.setText(formatRating(e.rating));
         h.delivery.setText(DELIVERY[position % DELIVERY.length]);
         h.eta.setText(ETA[position % ETA.length]);
         h.price.setText(formatPrice(e.price));
 
         Glide.with(h.img.getContext())
-                .load(e.imageUrl == null ? "" : e.imageUrl)
+                .load(resolveImageSource(e.imageUrl))
                 .apply(new RequestOptions()
                         .transform(new CenterCrop())
                         .placeholder(R.drawable.bg_app_gradient)
@@ -99,6 +100,23 @@ public class ProductsAdapter extends RecyclerView.Adapter<ProductsAdapter.VH> {
     }
 
     private String formatPrice(double price){
-        return priceFormat.format(Math.round(price)) + " đ";
+        return priceFormat.format(Math.round(price)) + " VND";
+    }
+
+    private String formatRating(Double rating){
+        double value = (rating == null || rating <= 0) ? 4.5 : rating;
+        return String.format(Locale.getDefault(), "%.1f", value);
+    }
+
+    private Object resolveImageSource(String imageUrl){
+        if (imageUrl == null || imageUrl.trim().isEmpty()) return R.drawable.bg_app_gradient;
+        return imageUrl.trim();
+    }
+
+    private String resolveDescription(String description){
+        if (description == null || description.trim().isEmpty()) {
+            return "Thuc uong dang duoc yeu thich";
+        }
+        return description;
     }
 }

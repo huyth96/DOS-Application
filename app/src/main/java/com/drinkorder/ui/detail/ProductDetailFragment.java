@@ -7,10 +7,12 @@ import android.view.ViewGroup;
 import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
+
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
+
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.resource.bitmap.CenterCrop;
 import com.bumptech.glide.request.RequestOptions;
@@ -20,6 +22,7 @@ import com.drinkorder.vm.CartVM;
 import com.drinkorder.vm.ProductDetailVM;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.imageview.ShapeableImageView;
+
 import java.text.NumberFormat;
 import java.util.Locale;
 
@@ -48,6 +51,7 @@ public class ProductDetailFragment extends Fragment {
   private TextView tvMetaTime;
   private MaterialButton btnAdd;
   private final NumberFormat priceFormat = NumberFormat.getInstance(new Locale("vi", "VN"));
+  private final NumberFormat ratingFormat = NumberFormat.getInstance(Locale.getDefault());
 
   @Nullable @Override
   public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -72,19 +76,21 @@ public class ProductDetailFragment extends Fragment {
     ImageButton btnFavorite = v.findViewById(R.id.btnFavorite);
 
     priceFormat.setMaximumFractionDigits(0);
+    ratingFormat.setMaximumFractionDigits(1);
+    ratingFormat.setMinimumFractionDigits(1);
 
     btnBack.setOnClickListener(view ->
         requireActivity().getOnBackPressedDispatcher().onBackPressed());
 
     btnFavorite.setOnClickListener(view ->
-        Toast.makeText(getContext(), "Tính năng yêu thích sẽ sớm ra mắt!", Toast.LENGTH_SHORT).show());
+        Toast.makeText(getContext(), "Chuc nang yeu thich se som ra mat", Toast.LENGTH_SHORT).show());
 
     vm = new ViewModelProvider(this).get(ProductDetailVM.class);
     cartVM = new ViewModelProvider(requireActivity()).get(CartVM.class);
 
     int productId = getArguments() != null ? getArguments().getInt(ARG_PRODUCT_ID, -1) : -1;
     if (productId <= 0) {
-      Toast.makeText(getContext(), "Không tìm thấy sản phẩm", Toast.LENGTH_SHORT).show();
+      Toast.makeText(getContext(), "Khong tim thay san pham", Toast.LENGTH_SHORT).show();
       requireActivity().getOnBackPressedDispatcher().onBackPressed();
       return;
     }
@@ -97,33 +103,46 @@ public class ProductDetailFragment extends Fragment {
 
     tvBrand.setText(resolveCategoryName(p.categoryId));
     tvName.setText(p.name);
-    tvDesc.setText(p.description == null ? "Sản phẩm đang được nhiều khách hàng yêu thích." : p.description);
+    tvDesc.setText(p.description == null
+        ? "San pham dang duoc nhieu khach hang yeu thich."
+        : p.description);
     tvPrice.setText(formatPrice(p.price));
 
-    tvMetaRating.setText("4.8");
-    tvMetaDelivery.setText("Miễn phí");
-    tvMetaTime.setText("15 phút");
+    tvMetaRating.setText(formatRating(p.rating));
+    tvMetaDelivery.setText("Free ship");
+    tvMetaTime.setText("15 phut");
+
+    Object imageSource = (p.imageUrl == null || p.imageUrl.trim().isEmpty())
+        ? R.drawable.bg_app_gradient
+        : p.imageUrl.trim();
 
     Glide.with(this)
-        .load(p.imageUrl == null || p.imageUrl.isEmpty() ? R.drawable.bg_app_gradient : p.imageUrl)
+        .load(imageSource)
         .apply(new RequestOptions().transform(new CenterCrop()))
         .into(img);
 
     btnAdd.setOnClickListener(view -> {
       cartVM.add(p);
-      Toast.makeText(getContext(), "Đã thêm vào giỏ hàng của bạn", Toast.LENGTH_SHORT).show();
+      Toast.makeText(getContext(), "Da them vao gio hang cua ban", Toast.LENGTH_SHORT).show();
     });
   }
 
   private String resolveCategoryName(int categoryId) {
     return switch (categoryId) {
-      case 1 -> "Trà sữa";
-      case 2 -> "Cà phê";
-      default -> "Đồ uống";
+      case 1 -> "Tra sua";
+      case 2 -> "Ca phe";
+      default -> "Do uong";
     };
   }
 
   private String formatPrice(double price) {
-    return priceFormat.format(Math.round(price)) + " đ";
+    return priceFormat.format(Math.round(price)) + " VND";
+  }
+
+  private String formatRating(Double rating) {
+    double value = (rating == null || rating <= 0) ? 4.5 : rating;
+    return ratingFormat != null
+        ? ratingFormat.format(value)
+        : String.format(Locale.getDefault(), "%.1f", value);
   }
 }
