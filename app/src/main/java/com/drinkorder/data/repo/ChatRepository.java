@@ -112,12 +112,13 @@ public class ChatRepository implements ChatSocketClient.Listener {
   public void disconnect() { socketClient.disconnect(); }
 
   public void ensureLocalThread(String threadId, String title) {
-    if (TextUtils.isEmpty(threadId)) { return; }
+    final String normalizedThreadId = resolveThreadId(threadId);
+    if (TextUtils.isEmpty(normalizedThreadId)) { return; }
     ioExecutor.execute(() -> database.runInTransaction(() -> {
-      ChatThreadEntity existing = threadDao.getThread(threadId);
+      ChatThreadEntity existing = threadDao.getThread(normalizedThreadId);
       if (existing != null) { return; }
       ChatThreadEntity entity = new ChatThreadEntity();
-      entity.threadId = threadId;
+      entity.threadId = normalizedThreadId;
       entity.userId = authRepository != null ? authRepository.userId() : 0;
       entity.title = TextUtils.isEmpty(title) ? "Barista Support" : title;
       entity.lastMessage = "";
@@ -131,11 +132,12 @@ public class ChatRepository implements ChatSocketClient.Listener {
   }
 
   public void sendMessage(String threadId, String body, String senderRole) {
+    final String normalizedThreadId = resolveThreadId(threadId);
     final String localId = "local-" + UUID.randomUUID();
     final long now = System.currentTimeMillis();
     final ChatMessageEntity entity = new ChatMessageEntity();
     entity.messageId = localId;
-    entity.threadId = threadId;
+    entity.threadId = normalizedThreadId;
     final String effectiveRole = TextUtils.isEmpty(senderRole) ? localRole : senderRole;
     entity.senderRole = effectiveRole;
     entity.body = body;
@@ -146,13 +148,13 @@ public class ChatRepository implements ChatSocketClient.Listener {
 
     ioExecutor.execute(() -> database.runInTransaction(() -> {
       int userId = authRepository != null ? authRepository.userId() : 0;
-      threadDao.touchThread(threadId, userId, null, body, senderRole, now, 0);
+      threadDao.touchThread(normalizedThreadId, userId, null, body, senderRole, now, 0);
       messageDao.upsert(entity);
     }));
 
     Map<String, Object> payload = new HashMap<>();
     payload.put("type", "message.send");
-    payload.put("threadId", threadId);
+    payload.put("threadId", normalizedThreadId);
     payload.put("body", body);
     payload.put("clientMessageId", localId);
     payload.put("sentAt", now);
@@ -161,12 +163,14 @@ public class ChatRepository implements ChatSocketClient.Listener {
   }
 
   public void markThreadRead(String threadId) {
+    final String normalizedThreadId = resolveThreadId(threadId);
+    if (TextUtils.isEmpty(normalizedThreadId)) { return; }
     ioExecutor.execute(() -> database.runInTransaction(() -> {
-      threadDao.updateUnread(threadId, 0, System.currentTimeMillis());
+      threadDao.updateUnread(normalizedThreadId, 0, System.currentTimeMillis());
     }));
     Map<String, Object> payload = new HashMap<>();
     payload.put("type", "thread.read");
-    payload.put("threadId", threadId);
+    payload.put("threadId", normalizedThreadId);
     socketClient.send(payload);
   }
 
@@ -314,9 +318,9 @@ public class ChatRepository implements ChatSocketClient.Listener {
 
   private void handleReadReceipt(JsonObject payload) {
     if (payload == null) { return; }
-    final String threadId = payload.has("threadId") && payload.get("threadId").isJsonPrimitive()
+    final String threadId = resolveThreadId(payload.has("threadId") && payload.get("threadId").isJsonPrimitive()
         ? payload.get("threadId").getAsString()
-        : null;
+        : null);
     if (threadId == null) { return; }
     ioExecutor.execute(() -> database.runInTransaction(() -> {
       threadDao.updateUnread(threadId, 0, System.currentTimeMillis());
@@ -327,8 +331,11 @@ public class ChatRepository implements ChatSocketClient.Listener {
     if (obj == null) { return null; }
     ChatThreadEntity entity = new ChatThreadEntity();
     if (obj.has("threadId") && obj.get("threadId").isJsonPrimitive()) {
-      entity.threadId = obj.get("threadId").getAsString();
+      entity.threadId = resolveThreadId(obj.get("threadId").getAsString());
     } else {
+      entity.threadId = resolveThreadId(null);
+    }
+    if (TextUtils.isEmpty(entity.threadId)) {
       return null;
     }
     entity.userId = obj.has("userId") && obj.get("userId").isJsonPrimitive()
@@ -361,9 +368,9 @@ public class ChatRepository implements ChatSocketClient.Listener {
     entity.messageId = payload.has("messageId") && payload.get("messageId").isJsonPrimitive()
         ? payload.get("messageId").getAsString()
         : UUID.randomUUID().toString();
-    entity.threadId = payload.has("threadId") && payload.get("threadId").isJsonPrimitive()
+    entity.threadId = resolveThreadId(payload.has("threadId") && payload.get("threadId").isJsonPrimitive()
         ? payload.get("threadId").getAsString()
-        : "";
+        : null);
     if (TextUtils.isEmpty(entity.threadId)) { return null; }
     entity.senderRole = payload.has("senderRole") && payload.get("senderRole").isJsonPrimitive()
         ? payload.get("senderRole").getAsString()
@@ -386,6 +393,19 @@ public class ChatRepository implements ChatSocketClient.Listener {
         && payload.get("isPending").getAsBoolean();
     entity.isPending = pending && entity.isOutgoing;
     return entity;
+  }
+
+  private String resolveThreadId(String rawThreadId) {
+    if (TextUtils.isEmpty(defaultThreadId)) {
+      return rawThreadId;
+    }
+    if (TextUtils.isEmpty(rawThreadId)) {
+      return defaultThreadId;
+    }
+    if (!"support".equalsIgnoreCase(localRole) && !TextUtils.equals(defaultThreadId, rawThreadId)) {
+      return defaultThreadId;
+    }
+    return rawThreadId;
   }
 
   private void collectMessages(JsonObject payload, List<ChatMessageEntity> accumulator) {
