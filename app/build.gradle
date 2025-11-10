@@ -11,7 +11,7 @@ android {
         versionCode 1
         versionName "1.0"
         vectorDrawables { useSupportLibrary true }
-        buildConfigField "String", "CHAT_SOCKET_URL", '"wss://chat.drinkorder.local/ws"'
+        buildConfigField "String", "CHAT_SOCKET_URL", '"ws://10.0.2.2:8080/ws"'
     }
 
     buildTypes {

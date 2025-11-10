@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
@@ -15,6 +16,7 @@ import com.drinkorder.R;
 import com.drinkorder.data.db.entity.chat.ChatMessageEntity;
 
 import java.text.DateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
 
@@ -23,8 +25,33 @@ public class ChatMessagesAdapter extends ListAdapter<ChatMessageEntity, Recycler
   private static final int TYPE_INCOMING = 0;
   private static final int TYPE_OUTGOING = 1;
 
+  private String localDisplayName;
+  private String remoteDisplayName;
+
   public ChatMessagesAdapter() {
     super(DIFF_CALLBACK);
+  }
+
+  public void setLocalDisplayName(@Nullable String displayName) {
+    if (!TextUtils.equals(localDisplayName, displayName)) {
+      localDisplayName = displayName;
+      notifyDataSetChanged();
+    }
+  }
+
+  public void setRemoteDisplayName(@Nullable String displayName) {
+    if (!TextUtils.equals(remoteDisplayName, displayName)) {
+      remoteDisplayName = displayName;
+      notifyDataSetChanged();
+    }
+  }
+
+  public void submitSafeList(@Nullable java.util.List<ChatMessageEntity> entries) {
+    if (entries == null || entries.isEmpty()) {
+      submitList(java.util.Collections.emptyList());
+    } else {
+      submitList(new ArrayList<>(entries));
+    }
   }
 
   private static final DiffUtil.ItemCallback<ChatMessageEntity> DIFF_CALLBACK =
@@ -70,12 +97,30 @@ public class ChatMessagesAdapter extends ListAdapter<ChatMessageEntity, Recycler
   @Override
   public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
     ChatMessageEntity item = getItem(position);
-    if (item == null) return;
+    if (item == null) { return; }
+    String senderLabel = resolveSenderLabel(holder.itemView, item);
+    String metaLabel = buildMeta(holder.itemView, item);
     if (holder instanceof OutgoingMessageViewHolder outgoing) {
-      outgoing.bind(item);
+      outgoing.bind(item, senderLabel, metaLabel);
     } else if (holder instanceof IncomingMessageViewHolder incoming) {
-      incoming.bind(item);
+      incoming.bind(item, senderLabel, metaLabel);
     }
+  }
+
+  private String resolveSenderLabel(@NonNull View itemView, @NonNull ChatMessageEntity entity) {
+    if (entity.isOutgoing) {
+      if (!TextUtils.isEmpty(localDisplayName)) {
+        return itemView.getContext().getString(R.string.chat_sender_you_with_name, localDisplayName);
+      }
+      return itemView.getContext().getString(R.string.chat_role_you);
+    }
+    if (!TextUtils.isEmpty(remoteDisplayName)) {
+      return remoteDisplayName;
+    }
+    if ("support".equalsIgnoreCase(entity.senderRole) || "admin".equalsIgnoreCase(entity.senderRole)) {
+      return itemView.getContext().getString(R.string.chat_role_support);
+    }
+    return itemView.getContext().getString(R.string.chat_role_customer);
   }
 
   private static String formatTime(long timestamp) {
@@ -83,39 +128,52 @@ public class ChatMessagesAdapter extends ListAdapter<ChatMessageEntity, Recycler
     return format.format(new Date(timestamp));
   }
 
+  private static String buildMeta(@NonNull View itemView, @NonNull ChatMessageEntity entity) {
+    StringBuilder meta = new StringBuilder(formatTime(entity.sentAt));
+    if (entity.isPending) {
+      meta.append(" ")
+          .append(itemView.getContext().getString(R.string.chat_meta_separator))
+          .append(" ")
+          .append(itemView.getContext().getString(R.string.chat_message_pending));
+    }
+    return meta.toString();
+  }
+
   private static class IncomingMessageViewHolder extends RecyclerView.ViewHolder {
+    private final TextView tvSender;
     private final TextView tvBody;
     private final TextView tvMeta;
 
     IncomingMessageViewHolder(@NonNull View itemView) {
       super(itemView);
+      tvSender = itemView.findViewById(R.id.tvSender);
       tvBody = itemView.findViewById(R.id.tvBody);
       tvMeta = itemView.findViewById(R.id.tvMeta);
     }
 
-    void bind(@NonNull ChatMessageEntity entity) {
+    void bind(@NonNull ChatMessageEntity entity, @NonNull String senderLabel, @NonNull String metaLabel) {
+      tvSender.setText(senderLabel);
       tvBody.setText(entity.body == null ? "" : entity.body);
-      tvMeta.setText(formatTime(entity.sentAt));
+      tvMeta.setText(metaLabel);
     }
   }
 
   private static class OutgoingMessageViewHolder extends RecyclerView.ViewHolder {
+    private final TextView tvSender;
     private final TextView tvBody;
     private final TextView tvMeta;
 
     OutgoingMessageViewHolder(@NonNull View itemView) {
       super(itemView);
+      tvSender = itemView.findViewById(R.id.tvSender);
       tvBody = itemView.findViewById(R.id.tvBody);
       tvMeta = itemView.findViewById(R.id.tvMeta);
     }
 
-    void bind(@NonNull ChatMessageEntity entity) {
+    void bind(@NonNull ChatMessageEntity entity, @NonNull String senderLabel, @NonNull String metaLabel) {
+      tvSender.setText(senderLabel);
       tvBody.setText(entity.body == null ? "" : entity.body);
-      StringBuilder meta = new StringBuilder(formatTime(entity.sentAt));
-      if (entity.isPending) {
-        meta.append(" • ").append(itemView.getContext().getString(R.string.chat_message_pending));
-      }
-      tvMeta.setText(meta.toString());
+      tvMeta.setText(metaLabel);
     }
   }
 }

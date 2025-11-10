@@ -1,5 +1,8 @@
 package com.drinkorder.data.repo;
 
+import android.net.Uri;
+import android.text.TextUtils;
+
 import androidx.lifecycle.LiveData;
 
 import com.drinkorder.BuildConfig;
@@ -28,12 +31,14 @@ public class ChatRepository implements ChatSocketClient.Listener {
   private final ChatSocketClient socketClient;
   private final AuthRepository authRepository;
   private final ExecutorService ioExecutor = Executors.newSingleThreadExecutor();
+  private final String localRole;
+  private final String defaultThreadId;
 
   public ChatRepository(AppDatabase database, ChatThreadDao threadDao, ChatMessageDao messageDao,
       AuthRepository authRepository) {
     this(database, threadDao, messageDao, authRepository,
         new ChatSocketClient(
-            BuildConfig.CHAT_SOCKET_URL,
+            buildSocketUrl(BuildConfig.CHAT_SOCKET_URL, authRepository),
             authRepository != null ? authRepository::getLoggedUserName : null
         ));
   }
@@ -46,6 +51,54 @@ public class ChatRepository implements ChatSocketClient.Listener {
     this.authRepository = authRepository;
     this.socketClient = socketClient;
     this.socketClient.addListener(this);
+    this.localRole = normalizeRole(authRepository != null ? authRepository.role() : null);
+    this.defaultThreadId = deriveDefaultThreadId(authRepository);
+  }
+
+  public String defaultThreadId() {
+    return defaultThreadId;
+  }
+
+  public String localRole() {
+    return localRole;
+  }
+
+  private static String normalizeRole(String rawRole) {
+    if (TextUtils.isEmpty(rawRole)) return "customer";
+    return rawRole.equalsIgnoreCase("admin") ? "support" : rawRole.toLowerCase();
+  }
+
+  private static String deriveDefaultThreadId(AuthRepository authRepository) {
+    if (authRepository == null) { return null; }
+    String role = authRepository.role();
+    if (!TextUtils.isEmpty(role) && role.equalsIgnoreCase("admin")) {
+      return null;
+    }
+    int userId = authRepository.userId();
+    if (userId <= 0) { return null; }
+    return "thread-" + userId;
+  }
+
+  private static String buildSocketUrl(String baseUrl, AuthRepository authRepository) {
+    if (authRepository == null || TextUtils.isEmpty(baseUrl)) {
+      return baseUrl;
+    }
+    Uri uri = Uri.parse(baseUrl);
+    Uri.Builder builder = uri.buildUpon();
+    int userId = authRepository.userId();
+    if (userId > 0) {
+      builder.appendQueryParameter("userId", String.valueOf(userId));
+    }
+    String username = authRepository.getLoggedUserName();
+    if (!TextUtils.isEmpty(username)) {
+      builder.appendQueryParameter("username", username);
+    }
+    builder.appendQueryParameter("role", normalizeRole(authRepository.role()));
+    String threadId = deriveDefaultThreadId(authRepository);
+    if (!TextUtils.isEmpty(threadId)) {
+      builder.appendQueryParameter("threadId", threadId);
+    }
+    return builder.build().toString();
   }
 
   public LiveData<List<ChatThreadEntity>> threads() { return threadDao.observeThreads(); }
@@ -58,13 +111,33 @@ public class ChatRepository implements ChatSocketClient.Listener {
 
   public void disconnect() { socketClient.disconnect(); }
 
+  public void ensureLocalThread(String threadId, String title) {
+    if (TextUtils.isEmpty(threadId)) { return; }
+    ioExecutor.execute(() -> database.runInTransaction(() -> {
+      ChatThreadEntity existing = threadDao.getThread(threadId);
+      if (existing != null) { return; }
+      ChatThreadEntity entity = new ChatThreadEntity();
+      entity.threadId = threadId;
+      entity.userId = authRepository != null ? authRepository.userId() : 0;
+      entity.title = TextUtils.isEmpty(title) ? "Barista Support" : title;
+      entity.lastMessage = "";
+      entity.lastSenderRole = localRole;
+      long timestamp = System.currentTimeMillis();
+      entity.lastTimestamp = timestamp;
+      entity.unreadCount = 0;
+      entity.updatedAt = timestamp;
+      threadDao.upsert(entity);
+    }));
+  }
+
   public void sendMessage(String threadId, String body, String senderRole) {
     final String localId = "local-" + UUID.randomUUID();
     final long now = System.currentTimeMillis();
     final ChatMessageEntity entity = new ChatMessageEntity();
     entity.messageId = localId;
     entity.threadId = threadId;
-    entity.senderRole = senderRole;
+    final String effectiveRole = TextUtils.isEmpty(senderRole) ? localRole : senderRole;
+    entity.senderRole = effectiveRole;
     entity.body = body;
     entity.sentAt = now;
     entity.deliveredAt = null;
@@ -72,9 +145,9 @@ public class ChatRepository implements ChatSocketClient.Listener {
     entity.isPending = true;
 
     ioExecutor.execute(() -> database.runInTransaction(() -> {
-      messageDao.upsert(entity);
       int userId = authRepository != null ? authRepository.userId() : 0;
       threadDao.touchThread(threadId, userId, body, senderRole, now, 0);
+      messageDao.upsert(entity);
     }));
 
     Map<String, Object> payload = new HashMap<>();
@@ -83,7 +156,7 @@ public class ChatRepository implements ChatSocketClient.Listener {
     payload.put("body", body);
     payload.put("clientMessageId", localId);
     payload.put("sentAt", now);
-    payload.put("senderRole", senderRole);
+    payload.put("senderRole", effectiveRole);
     socketClient.send(payload);
   }
 
@@ -191,14 +264,17 @@ public class ChatRepository implements ChatSocketClient.Listener {
     entity.deliveredAt = payload.has("deliveredAt") && payload.get("deliveredAt").isJsonPrimitive()
         ? payload.get("deliveredAt").getAsLong()
         : null;
-    entity.isOutgoing = payload.has("isOutgoing") && payload.get("isOutgoing").isJsonPrimitive() &&
+    boolean remoteOutgoing = payload.has("isOutgoing") && payload.get("isOutgoing").isJsonPrimitive() &&
         payload.get("isOutgoing").getAsBoolean();
+    boolean roleMatches = !TextUtils.isEmpty(localRole) && !TextUtils.isEmpty(entity.senderRole)
+        && localRole.equalsIgnoreCase(entity.senderRole);
+    entity.isOutgoing = remoteOutgoing || roleMatches;
     entity.isPending = false;
     final int unreadDelta = entity.isOutgoing ? 0 : 1;
     final int userId = authRepository != null ? authRepository.userId() : 0;
     ioExecutor.execute(() -> database.runInTransaction(() -> {
-      messageDao.upsert(entity);
       threadDao.touchThread(entity.threadId, userId, entity.body, entity.senderRole, entity.sentAt, unreadDelta);
+      messageDao.upsert(entity);
     }));
   }
 

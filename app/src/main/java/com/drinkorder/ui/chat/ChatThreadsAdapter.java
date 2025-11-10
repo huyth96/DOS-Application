@@ -8,6 +8,7 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
@@ -25,6 +26,7 @@ public class ChatThreadsAdapter extends ListAdapter<ChatThreadEntity, ChatThread
 
   private final Listener listener;
   private String selectedThreadId;
+  private String localRole;
 
   public ChatThreadsAdapter(@NonNull Listener listener) {
     super(DIFF_CALLBACK);
@@ -53,6 +55,13 @@ public class ChatThreadsAdapter extends ListAdapter<ChatThreadEntity, ChatThread
     notifyDataSetChanged();
   }
 
+  public void setLocalRole(String role) {
+    if (!TextUtils.equals(localRole, role)) {
+      localRole = role;
+      notifyDataSetChanged();
+    }
+  }
+
   @NonNull
   @Override
   public ThreadViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
@@ -64,8 +73,15 @@ public class ChatThreadsAdapter extends ListAdapter<ChatThreadEntity, ChatThread
   public void onBindViewHolder(@NonNull ThreadViewHolder holder, int position) {
     ChatThreadEntity item = getItem(position);
     if (item == null) return;
-    holder.bind(item, TextUtils.equals(item.threadId, selectedThreadId));
-    holder.itemView.setOnClickListener(v -> listener.onThreadSelected(item));
+    holder.bind(item, TextUtils.equals(item.threadId, selectedThreadId), localRole);
+    holder.itemView.setOnClickListener(v -> {
+      int adapterPosition = holder.getBindingAdapterPosition();
+      if (adapterPosition == RecyclerView.NO_POSITION) { return; }
+      ChatThreadEntity clicked = getItem(adapterPosition);
+      if (clicked != null) {
+        listener.onThreadSelected(clicked);
+      }
+    });
   }
 
   static class ThreadViewHolder extends RecyclerView.ViewHolder {
@@ -82,7 +98,7 @@ public class ChatThreadsAdapter extends ListAdapter<ChatThreadEntity, ChatThread
       tvUnread = itemView.findViewById(R.id.tvUnreadBadge);
     }
 
-    void bind(@NonNull ChatThreadEntity entity, boolean selected) {
+    void bind(@NonNull ChatThreadEntity entity, boolean selected, @Nullable String localRole) {
       String title = entity.title;
       if (TextUtils.isEmpty(title)) {
         title = itemView.getContext().getString(R.string.chat_default_title);
@@ -90,7 +106,10 @@ public class ChatThreadsAdapter extends ListAdapter<ChatThreadEntity, ChatThread
       tvTitle.setText(title);
 
       String preview = entity.lastMessage;
-      if (TextUtils.isEmpty(preview)) {
+      String senderLabel = buildSenderLabel(localRole, entity);
+      if (!TextUtils.isEmpty(preview) && !TextUtils.isEmpty(senderLabel)) {
+        preview = itemView.getContext().getString(R.string.chat_thread_preview_sender, senderLabel, preview);
+      } else if (TextUtils.isEmpty(preview)) {
         preview = itemView.getContext().getString(R.string.chat_default_subtitle);
       }
       tvPreview.setText(preview);
@@ -110,6 +129,19 @@ public class ChatThreadsAdapter extends ListAdapter<ChatThreadEntity, ChatThread
       }
 
       itemView.setBackgroundResource(selected ? R.drawable.bg_chat_thread_selected : R.drawable.bg_chat_thread_default);
+    }
+
+    private String buildSenderLabel(@Nullable String localRole, @NonNull ChatThreadEntity entity) {
+      if (TextUtils.isEmpty(entity.lastSenderRole)) {
+        return null;
+      }
+      if (!TextUtils.isEmpty(localRole) && entity.lastSenderRole.equalsIgnoreCase(localRole)) {
+        return itemView.getContext().getString(R.string.chat_role_you);
+      }
+      if ("support".equalsIgnoreCase(entity.lastSenderRole) || "admin".equalsIgnoreCase(entity.lastSenderRole)) {
+        return itemView.getContext().getString(R.string.chat_role_support);
+      }
+      return itemView.getContext().getString(R.string.chat_role_customer);
     }
   }
 }

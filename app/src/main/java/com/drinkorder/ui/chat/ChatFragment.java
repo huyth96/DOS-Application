@@ -87,6 +87,9 @@ public class ChatFragment extends Fragment {
   public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
     viewModel = new ViewModelProvider(requireActivity()).get(ChatViewModel.class);
+    if (adapter != null) {
+      adapter.setLocalDisplayName(viewModel.getLocalDisplayName());
+    }
 
     viewModel.getConnectionState().observe(getViewLifecycleOwner(), this::renderConnectionState);
     viewModel.getActiveThread().observe(getViewLifecycleOwner(), this::renderActiveThread);
@@ -143,6 +146,9 @@ public class ChatFragment extends Fragment {
     if (thread == null) {
       tvThreadTitle.setText(R.string.chat_default_title);
       tvThreadSubtitle.setText(R.string.chat_default_subtitle);
+      if (adapter != null) {
+        adapter.setRemoteDisplayName(getString(R.string.chat_default_title));
+      }
     } else {
       if (TextUtils.isEmpty(thread.title)) {
         tvThreadTitle.setText(R.string.chat_default_title);
@@ -153,13 +159,16 @@ public class ChatFragment extends Fragment {
           ? getString(R.string.chat_default_title)
           : thread.title;
       tvThreadSubtitle.setText(getString(R.string.chat_thread_with, partnerName));
+      if (adapter != null) {
+        adapter.setRemoteDisplayName(partnerName);
+      }
     }
     updateSendButtonState();
   }
 
   private void renderMessages(@Nullable List<ChatMessageEntity> messages) {
     if (adapter == null) return;
-    adapter.submitList(messages);
+    adapter.submitSafeList(messages);
     if (messages == null || messages.isEmpty()) {
       tvEmptyState.setVisibility(View.VISIBLE);
       tvEmptyState.setText(R.string.chat_empty_state);

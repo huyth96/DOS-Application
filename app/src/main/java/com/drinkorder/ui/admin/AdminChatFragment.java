@@ -102,6 +102,8 @@ public class AdminChatFragment extends Fragment {
   public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
     viewModel = new ViewModelProvider(requireActivity()).get(ChatViewModel.class);
+    messagesAdapter.setLocalDisplayName(viewModel.getLocalDisplayName());
+    threadsAdapter.setLocalRole(viewModel.getSenderRole());
 
     viewModel.getConnectionState().observe(getViewLifecycleOwner(), this::renderConnectionState);
     viewModel.getThreads().observe(getViewLifecycleOwner(), this::renderThreads);
@@ -157,7 +159,11 @@ public class AdminChatFragment extends Fragment {
 
   private void renderThreads(@Nullable List<ChatThreadEntity> threads) {
     if (threadsAdapter != null) {
-      threadsAdapter.submitList(threads);
+      if (threads == null || threads.isEmpty()) {
+        threadsAdapter.submitList(java.util.Collections.emptyList());
+      } else {
+        threadsAdapter.submitList(new java.util.ArrayList<>(threads));
+      }
     }
     hasAnyThread = threads != null && !threads.isEmpty();
     if (!hasAnyThread) {
@@ -179,6 +185,9 @@ public class AdminChatFragment extends Fragment {
     if (thread == null) {
       tvSelectedThreadTitle.setText(R.string.chat_default_title);
       tvSelectedThreadSubtitle.setText(R.string.chat_select_thread);
+      if (messagesAdapter != null) {
+        messagesAdapter.setRemoteDisplayName(getString(R.string.chat_default_title));
+      }
     } else {
       if (TextUtils.isEmpty(thread.title)) {
         tvSelectedThreadTitle.setText(R.string.chat_default_title);
@@ -189,13 +198,16 @@ public class AdminChatFragment extends Fragment {
           ? getString(R.string.chat_default_title)
           : thread.title;
       tvSelectedThreadSubtitle.setText(getString(R.string.chat_thread_with, partnerName));
+      if (messagesAdapter != null) {
+        messagesAdapter.setRemoteDisplayName(partnerName);
+      }
     }
     updateSendButtonState();
   }
 
   private void renderMessages(@Nullable List<ChatMessageEntity> messages) {
     if (messagesAdapter == null) return;
-    messagesAdapter.submitList(messages);
+    messagesAdapter.submitSafeList(messages);
     if (messages == null || messages.isEmpty()) {
       if (!hasAnyThread) {
         tvEmptyState.setVisibility(View.VISIBLE);

@@ -38,7 +38,7 @@
     <string name="admin_categories_filter_hidden">Special</string>
     <string name="admin_hero_illustration_cd">Interface illustration</string>
 
-    <string name="admin_user_created_at">Created • %1$s</string>
+    <string name="admin_user_created_at">Created &#8226; %1$s</string>
     <string name="admin_user_status_banned">Banned</string>
     <string name="admin_user_status_active">Active</string>
     <string name="admin_user_action_ban">Ban user</string>
@@ -56,18 +56,26 @@
     <string name="admin_user_empty_all_subtitle">New accounts will appear here once customers register.</string>
     <string name="admin_user_empty_filtered_subtitle">Try a different keyword or clear the search box.</string>
     <string name="chat_status_disconnected">Disconnected</string>
-    <string name="chat_status_connecting">Connecting…</string>
+    <string name="chat_status_connecting">Connecting&#8230;</string>
     <string name="chat_status_connected">Connected</string>
     <string name="chat_status_failed">Connection failed</string>
     <string name="chat_default_title">Support chat</string>
-    <string name="chat_default_subtitle">We&apos;re here to help in real time.</string>
+    <string name="chat_default_subtitle">We\'re here to help in real time.</string>
     <string name="chat_empty_state">Start the conversation with our baristas team.</string>
     <string name="chat_input_hint">Type a message</string>
     <string name="chat_action_send">Send message</string>
     <string name="chat_threads_title">Customer conversations</string>
     <string name="chat_select_thread">Choose a conversation to reply.</string>
     <string name="chat_no_threads">No conversations yet.</string>
-    <string name="chat_message_pending">Sending…</string>
+    <string name="chat_message_pending">Sending&#8230;</string>
+    <string name="chat_meta_separator">&#8226;</string>
+    <string name="chat_role_you">You</string>
+    <string name="chat_role_support">Support</string>
+    <string name="chat_role_customer">Customer</string>
+    <string name="chat_sender_you_with_name">%1$s (You)</string>
     <string name="chat_menu_label">Chat</string>
     <string name="chat_thread_with">Chatting with %1$s</string>
+    <string name="chat_thread_preview_sender">%1$s: %2$s</string>
+    <string name="map_action_label">Map</string>
+    <string name="map_action_description">Open store map</string>
 </resources>
