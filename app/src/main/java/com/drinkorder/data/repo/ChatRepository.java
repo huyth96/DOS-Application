@@ -219,57 +219,43 @@ public class ChatRepository implements ChatSocketClient.Listener {
   private void handleThreadSync(JsonObject payload) {
     if (payload == null) { return; }
     List<ChatThreadEntity> threads = new ArrayList<>();
+    List<ChatMessageEntity> messages = new ArrayList<>();
     if (payload.has("threads") && payload.get("threads").isJsonArray()) {
       JsonArray arr = payload.getAsJsonArray("threads");
       for (JsonElement el : arr) {
         if (el.isJsonObject()) {
-          ChatThreadEntity entity = buildThreadEntity(el.getAsJsonObject());
+          JsonObject threadObj = el.getAsJsonObject();
+          ChatThreadEntity entity = buildThreadEntity(threadObj);
           if (entity != null) { threads.add(entity); }
+          collectMessages(threadObj, messages);
         }
       }
     } else {
       ChatThreadEntity entity = buildThreadEntity(payload);
       if (entity != null) { threads.add(entity); }
+      collectMessages(payload, messages);
     }
-    if (!threads.isEmpty()) {
-      ioExecutor.execute(() -> database.runInTransaction(() -> threadDao.upsert(threads)));
-    }
+    if (threads.isEmpty() && messages.isEmpty()) { return; }
+    ioExecutor.execute(() -> database.runInTransaction(() -> {
+      if (!threads.isEmpty()) { threadDao.upsert(threads); }
+      if (!messages.isEmpty()) { messageDao.upsert(messages); }
+    }));
   }
 
   private void handleThreadUpdate(JsonObject payload) {
     ChatThreadEntity entity = buildThreadEntity(payload);
-    if (entity == null) { return; }
-    ioExecutor.execute(() -> database.runInTransaction(() -> threadDao.upsert(entity)));
+    List<ChatMessageEntity> messages = new ArrayList<>();
+    collectMessages(payload, messages);
+    if (entity == null && messages.isEmpty()) { return; }
+    ioExecutor.execute(() -> database.runInTransaction(() -> {
+      if (entity != null) { threadDao.upsert(entity); }
+      if (!messages.isEmpty()) { messageDao.upsert(messages); }
+    }));
   }
 
   private void handleIncomingMessage(JsonObject payload) {
-    if (payload == null) { return; }
-    final ChatMessageEntity entity = new ChatMessageEntity();
-    entity.messageId = payload.has("messageId") && payload.get("messageId").isJsonPrimitive()
-        ? payload.get("messageId").getAsString()
-        : UUID.randomUUID().toString();
-    entity.threadId = payload.has("threadId") && payload.get("threadId").isJsonPrimitive()
-        ? payload.get("threadId").getAsString()
-        : "";
-    if (entity.threadId == null || entity.threadId.isEmpty()) { return; }
-    entity.senderRole = payload.has("senderRole") && payload.get("senderRole").isJsonPrimitive()
-        ? payload.get("senderRole").getAsString()
-        : null;
-    entity.body = payload.has("body") && payload.get("body").isJsonPrimitive()
-        ? payload.get("body").getAsString()
-        : null;
-    entity.sentAt = payload.has("sentAt") && payload.get("sentAt").isJsonPrimitive()
-        ? payload.get("sentAt").getAsLong()
-        : System.currentTimeMillis();
-    entity.deliveredAt = payload.has("deliveredAt") && payload.get("deliveredAt").isJsonPrimitive()
-        ? payload.get("deliveredAt").getAsLong()
-        : null;
-    boolean remoteOutgoing = payload.has("isOutgoing") && payload.get("isOutgoing").isJsonPrimitive() &&
-        payload.get("isOutgoing").getAsBoolean();
-    boolean roleMatches = !TextUtils.isEmpty(localRole) && !TextUtils.isEmpty(entity.senderRole)
-        && localRole.equalsIgnoreCase(entity.senderRole);
-    entity.isOutgoing = remoteOutgoing || roleMatches;
-    entity.isPending = false;
+    ChatMessageEntity entity = buildMessageEntity(payload);
+    if (entity == null) { return; }
     final int unreadDelta = entity.isOutgoing ? 0 : 1;
     final String threadTitle = extractThreadTitle(payload);
     final int userId = authRepository != null ? authRepository.userId() : 0;
@@ -367,5 +353,52 @@ public class ChatRepository implements ChatSocketClient.Listener {
         ? obj.get("updatedAt").getAsLong()
         : System.currentTimeMillis();
     return entity;
+  }
+
+  private ChatMessageEntity buildMessageEntity(JsonObject payload) {
+    if (payload == null) { return null; }
+    ChatMessageEntity entity = new ChatMessageEntity();
+    entity.messageId = payload.has("messageId") && payload.get("messageId").isJsonPrimitive()
+        ? payload.get("messageId").getAsString()
+        : UUID.randomUUID().toString();
+    entity.threadId = payload.has("threadId") && payload.get("threadId").isJsonPrimitive()
+        ? payload.get("threadId").getAsString()
+        : "";
+    if (TextUtils.isEmpty(entity.threadId)) { return null; }
+    entity.senderRole = payload.has("senderRole") && payload.get("senderRole").isJsonPrimitive()
+        ? payload.get("senderRole").getAsString()
+        : null;
+    entity.body = payload.has("body") && payload.get("body").isJsonPrimitive()
+        ? payload.get("body").getAsString()
+        : null;
+    entity.sentAt = payload.has("sentAt") && payload.get("sentAt").isJsonPrimitive()
+        ? payload.get("sentAt").getAsLong()
+        : System.currentTimeMillis();
+    entity.deliveredAt = payload.has("deliveredAt") && payload.get("deliveredAt").isJsonPrimitive()
+        ? payload.get("deliveredAt").getAsLong()
+        : null;
+    boolean remoteOutgoing = payload.has("isOutgoing") && payload.get("isOutgoing").isJsonPrimitive()
+        && payload.get("isOutgoing").getAsBoolean();
+    boolean roleMatches = !TextUtils.isEmpty(localRole) && !TextUtils.isEmpty(entity.senderRole)
+        && localRole.equalsIgnoreCase(entity.senderRole);
+    entity.isOutgoing = remoteOutgoing || roleMatches;
+    boolean pending = payload.has("isPending") && payload.get("isPending").isJsonPrimitive()
+        && payload.get("isPending").getAsBoolean();
+    entity.isPending = pending && entity.isOutgoing;
+    return entity;
+  }
+
+  private void collectMessages(JsonObject payload, List<ChatMessageEntity> accumulator) {
+    if (payload == null || accumulator == null) { return; }
+    if (!payload.has("messages") || !payload.get("messages").isJsonArray()) { return; }
+    JsonArray arr = payload.getAsJsonArray("messages");
+    for (JsonElement msgEl : arr) {
+      if (!msgEl.isJsonObject()) { continue; }
+      ChatMessageEntity message = buildMessageEntity(msgEl.getAsJsonObject());
+      if (message != null) {
+        message.isPending = false;
+        accumulator.add(message);
+      }
+    }
   }
 }
