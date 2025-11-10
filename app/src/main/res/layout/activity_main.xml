@@ -5,7 +5,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/brand_background"
-    android:paddingTop="24dp"
     tools:context=".ui.MainActivity">
 
     <FrameLayout
@@ -23,8 +22,10 @@
         android:id="@+id/bottomNav"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="12dp"
-        android:background="?android:colorBackground"
+        android:background="@color/brand_surface_elevated"
+        android:elevation="6dp"
+        android:paddingTop="4dp"
+        android:paddingBottom="8dp"
         app:itemIconTint="@color/bottom_nav_color"
         app:itemTextColor="@color/bottom_nav_color"
         app:itemRippleColor="@color/brand_secondary_container"

@@ -1,15 +1,17 @@
 package com.drinkorder.ui.admin;
 
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -20,15 +22,27 @@ import com.drinkorder.data.db.entity.CategoryEntity;
 import com.drinkorder.data.db.entity.ProductEntity;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
-import java.util.HashMap;
+import com.google.android.material.textfield.TextInputEditText;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
+import java.util.Locale;
 
 public class AdminProductsFragment extends Fragment {
 
   private AdminProductsVM vm;
   private AdminProductsAdapter adapter;
-  private TextView tvEmptyState;
+  private TextView tvProductCount;
+  private TextView tvCategoryCount;
+  private View emptyStateContainer;
+  private TextView tvEmptyTitle;
+  private TextView tvEmptySubtitle;
+  private RecyclerView recyclerView;
+  private final List<ProductEntity> allProducts = new ArrayList<>();
+  private Map<Integer, String> categoryNames = new HashMap<>();
+  private String currentQuery = "";
 
   @Nullable
   @Override
@@ -41,15 +55,13 @@ public class AdminProductsFragment extends Fragment {
   public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
 
-    Toolbar toolbar = view.findViewById(R.id.toolbarAdmin);
-    if (toolbar != null) {
-      toolbar.setTitle("Quan ly san pham");
-      toolbar.setNavigationIcon(null);
-    }
-
-    tvEmptyState = view.findViewById(R.id.tvEmptyState);
-    RecyclerView rv = view.findViewById(R.id.rvAdminProducts);
-    rv.setLayoutManager(new LinearLayoutManager(requireContext()));
+    tvProductCount = view.findViewById(R.id.tvProductCount);
+    tvCategoryCount = view.findViewById(R.id.tvCategoryCount);
+    emptyStateContainer = view.findViewById(R.id.emptyStateContainer);
+    tvEmptyTitle = view.findViewById(R.id.tvEmptyState);
+    tvEmptySubtitle = view.findViewById(R.id.tvEmptySubtitle);
+    recyclerView = view.findViewById(R.id.rvAdminProducts);
+    recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
     adapter = new AdminProductsAdapter(new AdminProductsAdapter.Callback() {
       @Override public void onEdit(ProductEntity product) {
         if (getContext() == null) return;
@@ -60,7 +72,19 @@ public class AdminProductsFragment extends Fragment {
         confirmDelete(product);
       }
     });
-    rv.setAdapter(adapter);
+    recyclerView.setAdapter(adapter);
+
+    TextInputEditText edtSearch = view.findViewById(R.id.edtSearchProducts);
+    if (edtSearch != null) {
+      edtSearch.addTextChangedListener(new TextWatcher() {
+        @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+        @Override public void onTextChanged(CharSequence s, int start, int before, int count) {
+          currentQuery = s == null ? "" : s.toString().trim();
+          applyFilters();
+        }
+        @Override public void afterTextChanged(Editable s) {}
+      });
+    }
 
     FloatingActionButton fab = view.findViewById(R.id.fabAddProduct);
     fab.setOnClickListener(v -> {
@@ -69,30 +93,48 @@ public class AdminProductsFragment extends Fragment {
       }
     });
 
+    Button btnAddFromEmpty = view.findViewById(R.id.btnAddProductFromEmpty);
+    if (btnAddFromEmpty != null) {
+      btnAddFromEmpty.setOnClickListener(v -> {
+        if (getContext() != null) {
+          AdminProductFormActivity.start(getContext(), -1);
+        }
+      });
+    }
+
     vm = new ViewModelProvider(this).get(AdminProductsVM.class);
     vm.products.observe(getViewLifecycleOwner(), list -> {
-      adapter.submit(list);
-      tvEmptyState.setVisibility(list == null || list.isEmpty() ? View.VISIBLE : View.GONE);
+      allProducts.clear();
+      if (list != null) allProducts.addAll(list);
+      updateProductCount(allProducts.size());
+      applyFilters();
     });
-    vm.categories.observe(getViewLifecycleOwner(), list -> adapter.setCategoryNames(toCategoryMap(list)));
+    vm.categories.observe(getViewLifecycleOwner(), list -> {
+      categoryNames = toCategoryMap(list);
+      adapter.setCategoryNames(categoryNames);
+      int count = list == null ? 0 : list.size();
+      tvCategoryCount.setText(String.format(Locale.getDefault(), "%d %s", count,
+          count == 1 ? "category" : "categories"));
+      applyFilters();
+    });
   }
 
   private void confirmDelete(ProductEntity product) {
     if (product == null || getContext() == null) return;
     new androidx.appcompat.app.AlertDialog.Builder(requireContext())
-        .setTitle("Xoa san pham")
-        .setMessage("Ban co chac muon xoa \"" + product.name + "\"?")
-        .setPositiveButton("Xoa", (dialog, which) ->
+        .setTitle("Remove product")
+        .setMessage("Are you sure you want to delete \"" + product.name + "\"?")
+        .setPositiveButton("Delete", (dialog, which) ->
             vm.deleteProduct(product, new AdminProductsVM.ActionCallback() {
               @Override public void onSuccess() {
-                Toast.makeText(getContext(), "Da xoa san pham", Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "Product removed", Toast.LENGTH_SHORT).show();
               }
 
               @Override public void onError(Throwable throwable) {
-                Toast.makeText(getContext(), "Xoa that bai: " + throwable.getMessage(), Toast.LENGTH_SHORT).show();
+                Toast.makeText(getContext(), "Delete failed: " + throwable.getMessage(), Toast.LENGTH_SHORT).show();
               }
             }))
-        .setNegativeButton("Huy", null)
+        .setNegativeButton("Cancel", null)
         .show();
   }
 
@@ -104,5 +146,48 @@ public class AdminProductsFragment extends Fragment {
       }
     }
     return map;
+  }
+
+  private void applyFilters() {
+    List<ProductEntity> filtered = new ArrayList<>();
+    String query = currentQuery == null ? "" : currentQuery.toLowerCase(Locale.getDefault());
+    for (ProductEntity p : allProducts) {
+      if (query.isEmpty()) {
+        filtered.add(p);
+      } else {
+        String name = p.name == null ? "" : p.name.toLowerCase(Locale.getDefault());
+        String category = categoryNames.getOrDefault(p.categoryId, "")
+            .toLowerCase(Locale.getDefault());
+        if (name.contains(query) || category.contains(query)) {
+          filtered.add(p);
+        }
+      }
+    }
+    adapter.submit(filtered);
+    updateEmptyState(filtered.isEmpty(), !query.isEmpty());
+  }
+
+  private void updateProductCount(int total) {
+    if (tvProductCount == null) return;
+    tvProductCount.setText(String.format(Locale.getDefault(), "%d %s", total,
+        total == 1 ? "product" : "products"));
+  }
+
+  private void updateEmptyState(boolean showEmpty, boolean isFiltering) {
+    if (recyclerView == null || emptyStateContainer == null) return;
+    recyclerView.setVisibility(showEmpty ? View.GONE : View.VISIBLE);
+    emptyStateContainer.setVisibility(showEmpty ? View.VISIBLE : View.GONE);
+    if (!showEmpty) return;
+    if (tvEmptyTitle == null || tvEmptySubtitle == null) return;
+    if (allProducts.isEmpty()) {
+      tvEmptyTitle.setText("No products yet");
+      tvEmptySubtitle.setText("Tap the button below to add your first drink.");
+    } else if (isFiltering) {
+      tvEmptyTitle.setText("No products match your search");
+      tvEmptySubtitle.setText("Try another keyword or clear the filter.");
+    } else {
+      tvEmptyTitle.setText("No products found");
+      tvEmptySubtitle.setText("Add a new product to get started.");
+    }
   }
 }

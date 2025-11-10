@@ -83,14 +83,14 @@ public class ProductDetailFragment extends Fragment {
         requireActivity().getOnBackPressedDispatcher().onBackPressed());
 
     btnFavorite.setOnClickListener(view ->
-        Toast.makeText(getContext(), "Chuc nang yeu thich se som ra mat", Toast.LENGTH_SHORT).show());
+        Toast.makeText(getContext(), "Favorites coming soon", Toast.LENGTH_SHORT).show());
 
     vm = new ViewModelProvider(this).get(ProductDetailVM.class);
     cartVM = new ViewModelProvider(requireActivity()).get(CartVM.class);
 
     int productId = getArguments() != null ? getArguments().getInt(ARG_PRODUCT_ID, -1) : -1;
     if (productId <= 0) {
-      Toast.makeText(getContext(), "Khong tim thay san pham", Toast.LENGTH_SHORT).show();
+      Toast.makeText(getContext(), "Product not found", Toast.LENGTH_SHORT).show();
       requireActivity().getOnBackPressedDispatcher().onBackPressed();
       return;
     }
@@ -104,13 +104,13 @@ public class ProductDetailFragment extends Fragment {
     tvBrand.setText(resolveCategoryName(p.categoryId));
     tvName.setText(p.name);
     tvDesc.setText(p.description == null
-        ? "San pham dang duoc nhieu khach hang yeu thich."
+        ? "This drink is trending with our customers."
         : p.description);
     tvPrice.setText(formatPrice(p.price));
 
     tvMetaRating.setText(formatRating(p.rating));
-    tvMetaDelivery.setText("Free ship");
-    tvMetaTime.setText("15 phut");
+    tvMetaDelivery.setText("Free delivery");
+    tvMetaTime.setText("15 minutes");
 
     Object imageSource = (p.imageUrl == null || p.imageUrl.trim().isEmpty())
         ? R.drawable.bg_app_gradient
@@ -123,15 +123,15 @@ public class ProductDetailFragment extends Fragment {
 
     btnAdd.setOnClickListener(view -> {
       cartVM.add(p);
-      Toast.makeText(getContext(), "Da them vao gio hang cua ban", Toast.LENGTH_SHORT).show();
+      Toast.makeText(getContext(), "Added to your cart", Toast.LENGTH_SHORT).show();
     });
   }
 
   private String resolveCategoryName(int categoryId) {
     return switch (categoryId) {
-      case 1 -> "Tra sua";
-      case 2 -> "Ca phe";
-      default -> "Do uong";
+      case 1 -> "Milk tea";
+      case 2 -> "Coffee";
+      default -> "Beverage";
     };
   }
 

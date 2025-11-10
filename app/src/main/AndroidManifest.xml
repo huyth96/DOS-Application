@@ -15,7 +15,7 @@
         <activity
             android:name=".ui.map.MapActivity"
             android:exported="false"
-            android:label="Ban do" />
+            android:label="Delivery map" />
 
         <activity android:name=".ui.MainActivity" />
 
@@ -31,22 +31,22 @@
         <activity
             android:name=".ui.login.RegisterActivity"
             android:exported="false"
-            android:label="Dang ky" />
+            android:label="Register" />
 
         <activity
             android:name=".ui.login.ProfileActivity"
             android:exported="false"
-            android:label="Tai khoan" />
+            android:label="Account" />
 
         <activity
             android:name=".ui.login.EditProfileActivity"
             android:exported="false"
-            android:label="Chinh sua thong tin" />
+            android:label="Edit profile" />
 
         <activity
             android:name=".ui.admin.AdminProductFormActivity"
             android:exported="false"
-            android:label="Chinh sua san pham" />
+            android:label="Edit product" />
 
     </application>
 </manifest>

@@ -44,7 +44,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Điểm giao nước"
+                    android:text="Delivery spot"
                     android:textColor="@color/brand_on_surface"
                     android:textSize="18sp"
                     android:textStyle="bold" />
@@ -53,7 +53,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="4dp"
-                    android:text="DrinkOrder Hub, Quận 1, TP. HCM"
+                    android:text="DrinkOrder Hub, District 1, HCMC"
                     android:textColor="@color/brand_on_surface_variant"
                     android:textSize="14sp" />
             </LinearLayout>
@@ -66,6 +66,6 @@
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="24dp"
-        android:text="Mở Google Maps"
+        android:text="Open Google Maps"
         app:icon="@drawable/ic_map_pin" />
 </FrameLayout>

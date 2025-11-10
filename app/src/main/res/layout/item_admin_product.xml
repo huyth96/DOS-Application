@@ -36,7 +36,7 @@
             app:layout_constraintStart_toEndOf="@id/imgThumb"
             app:layout_constraintTop_toTopOf="@id/imgThumb"
             app:layout_constraintEnd_toEndOf="parent"
-            tools:text="Tra sua truyen thong" />
+            tools:text="Classic milk tea" />
 
         <TextView
             android:id="@+id/tvCategory"
@@ -49,7 +49,7 @@
             app:layout_constraintStart_toEndOf="@id/imgThumb"
             app:layout_constraintTop_toBottomOf="@id/tvName"
             app:layout_constraintEnd_toEndOf="@id/tvName"
-            tools:text="Danh muc: Tra sua" />
+            tools:text="Category: Milk tea" />
 
         <TextView
             android:id="@+id/tvPrice"
@@ -92,7 +92,7 @@
                 style="@style/Widget.MaterialComponents.Button.TextButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Sua"
+                android:text="Edit"
                 android:textAllCaps="false" />
 
             <com.google.android.material.button.MaterialButton
@@ -100,7 +100,7 @@
                 style="@style/Widget.MaterialComponents.Button.TextButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="Xoa"
+                android:text="Delete"
                 android:textAllCaps="false"
                 android:textColor="@color/brand_error" />
         </LinearLayout>

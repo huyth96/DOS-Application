@@ -45,7 +45,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
                     android:background="@drawable/bg_status_pill"
-                    android:text="Trạng thái"
+                    android:text="Status"
                     android:textColor="@color/brand_on_secondary"
                     android:textSize="13sp"
                     android:textStyle="bold" />
@@ -90,7 +90,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Chi tiết đơn hàng"
+                    android:text="Order details"
                     android:textColor="@color/brand_on_surface"
                     android:textSize="16sp"
                     android:textStyle="bold" />

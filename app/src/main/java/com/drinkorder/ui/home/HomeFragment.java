@@ -56,7 +56,7 @@ public class HomeFragment extends Fragment {
     adapter = new ProductsAdapter(
         product -> {
           cartVM.add(product);
-          Toast.makeText(getContext(), "Đã thêm vào giỏ", Toast.LENGTH_SHORT).show();
+        Toast.makeText(getContext(), "Added to cart", Toast.LENGTH_SHORT).show();
         },
         this::openDetail
     );
@@ -79,13 +79,13 @@ public class HomeFragment extends Fragment {
     btnShortcutOrders.setOnClickListener(view -> switchTab(R.id.tab_orders));
     btnShortcutLocations.setOnClickListener(view -> startActivity(new Intent(requireContext(), MapActivity.class)));
     btnMenu.setOnClickListener(view ->
-        Toast.makeText(getContext(), "Menu nhanh đang được hoàn thiện", Toast.LENGTH_SHORT).show());
+        Toast.makeText(getContext(), "Quick menu is coming soon", Toast.LENGTH_SHORT).show());
 
     v.findViewById(R.id.btnSeeAllProducts).setOnClickListener(view ->
-        Toast.makeText(getContext(), "Hiển thị tất cả sản phẩm sắp ra mắt", Toast.LENGTH_SHORT).show());
+        Toast.makeText(getContext(), "All products will be visible soon", Toast.LENGTH_SHORT).show());
 
     v.findViewById(R.id.btnSeeAllCategories).setOnClickListener(view ->
-        Toast.makeText(getContext(), "Danh mục chi tiết sẽ được bổ sung", Toast.LENGTH_SHORT).show());
+        Toast.makeText(getContext(), "Category details will be added soon", Toast.LENGTH_SHORT).show());
 
     edtSearch.setOnEditorActionListener((textView, actionId, keyEvent) -> {
       if (actionId == EditorInfo.IME_ACTION_SEARCH || (keyEvent != null && keyEvent.getKeyCode() == KeyEvent.KEYCODE_ENTER)) {
@@ -166,27 +166,27 @@ public class HomeFragment extends Fragment {
     Calendar calendar = Calendar.getInstance();
     int hour = calendar.get(Calendar.HOUR_OF_DAY);
     String period;
-    if (hour < 11) period = "sáng";
-    else if (hour < 17) period = "chiều";
-    else period = "tối";
+    if (hour < 11) period = "morning";
+    else if (hour < 17) period = "afternoon";
+    else period = "evening";
 
-    tvGreetingLine.setText(String.format(Locale.getDefault(), "Chào buổi %s,", period));
+    tvGreetingLine.setText(String.format(Locale.getDefault(), "Good %s,", period));
 
     SharedPreferences sp = requireContext().getSharedPreferences("auth", Context.MODE_PRIVATE);
     String username = sp.getString("username", null);
     if (TextUtils.isEmpty(username)) {
-      tvGreetingHighlight.setText("Hôm nay bạn muốn uống gì?");
+      tvGreetingHighlight.setText("What drink are you craving today?");
     } else {
-      tvGreetingHighlight.setText(String.format(Locale.getDefault(), "%s, món nào cho hôm nay?", username));
+      tvGreetingHighlight.setText(String.format(Locale.getDefault(), "%s, what sounds good today?", username));
     }
   }
 
   private void performSearch(CharSequence query) {
     if (TextUtils.isEmpty(query)) {
-      Toast.makeText(getContext(), "Nhập tên đồ uống để tìm kiếm", Toast.LENGTH_SHORT).show();
+      Toast.makeText(getContext(), "Enter a drink name to search", Toast.LENGTH_SHORT).show();
       return;
     }
-    Toast.makeText(getContext(), "Tính năng tìm kiếm sẽ ra mắt sớm!", Toast.LENGTH_SHORT).show();
+    Toast.makeText(getContext(), "Search is coming soon!", Toast.LENGTH_SHORT).show();
   }
 
   private void openDetail(ProductEntity item){

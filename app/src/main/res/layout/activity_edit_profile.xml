@@ -30,7 +30,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Chỉnh sửa thông tin"
+                    android:text="Edit profile"
                     android:textColor="@color/brand_on_primary"
                     android:textSize="20sp"
                     android:textStyle="bold" />
@@ -40,7 +40,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:maxWidth="280dp"
-                    android:text="Cập nhật hồ sơ để chúng tôi phục vụ bạn tốt hơn."
+                    android:text="Keep your information up to date so we can serve you better."
                     android:textColor="@color/brand_on_primary"
                     android:textSize="14sp"
                     android:alpha="0.9" />
@@ -67,7 +67,7 @@
                 <com.google.android.material.textfield.TextInputLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Họ tên">
+                    android:hint="Full name">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/edtFullName"
@@ -95,7 +95,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
-                    android:hint="Số điện thoại">
+                    android:hint="Phone number">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/edtPhone"
@@ -109,7 +109,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
-                    android:hint="Mật khẩu mới (tùy chọn)"
+                    android:hint="New password (optional)"
                     app:endIconMode="password_toggle">
 
                     <com.google.android.material.textfield.TextInputEditText
@@ -125,7 +125,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="24dp"
-                    android:text="Lưu thay đổi" />
+                    android:text="Save changes" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnCancel"
@@ -133,7 +133,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    android:text="Huỷ" />
+                    android:text="Cancel" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
     </LinearLayout>

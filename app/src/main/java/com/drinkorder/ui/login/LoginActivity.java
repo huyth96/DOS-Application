@@ -53,7 +53,7 @@ public class LoginActivity extends AppCompatActivity {
     String p = edtPass.getText().toString().trim();
 
     if (u.isEmpty() || p.isEmpty()) {
-      Toast.makeText(this, "Vui lòng nhập username và password", Toast.LENGTH_SHORT).show();
+      Toast.makeText(this, "Please enter username and password", Toast.LENGTH_SHORT).show();
       return;
     }
 
@@ -61,11 +61,11 @@ public class LoginActivity extends AppCompatActivity {
       boolean ok = auth.login(u, p); // thực hiện check Room + lưu SharedPreferences
       runOnUiThread(() -> {
         if (ok) {
-          Toast.makeText(this, "Đăng nhập thành công", Toast.LENGTH_SHORT).show();
+          Toast.makeText(this, "Signed in successfully", Toast.LENGTH_SHORT).show();
           startActivity(new Intent(this, MainActivity.class));
           finish();
         } else {
-          Toast.makeText(this, "Sai tài khoản hoặc mật khẩu", Toast.LENGTH_SHORT).show();
+          Toast.makeText(this, "Incorrect username or password", Toast.LENGTH_SHORT).show();
         }
       });
     }).start();

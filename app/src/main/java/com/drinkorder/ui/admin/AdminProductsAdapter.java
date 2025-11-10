@@ -62,7 +62,7 @@ public class AdminProductsAdapter extends RecyclerView.Adapter<AdminProductsAdap
   public void onBindViewHolder(@NonNull VH holder, int position) {
     ProductEntity product = items.get(position);
     holder.tvName.setText(product.name);
-    holder.tvCategory.setText("Danh muc: " + categoryNames.getOrDefault(product.categoryId, "Unknown"));
+    holder.tvCategory.setText("Category: " + categoryNames.getOrDefault(product.categoryId, "Unknown"));
     holder.tvPrice.setText(priceFormat.format(Math.round(product.price)) + " VND");
     holder.tvMeta.setText(String.format(Locale.getDefault(), "Rating: %s  |  Stock: %d",
         formatRating(product.rating), product.stock == null ? 0 : product.stock));

@@ -30,7 +30,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Tạo tài khoản"
+                    android:text="Create account"
                     android:textColor="@color/brand_on_primary"
                     android:textSize="20sp"
                     android:textStyle="bold" />
@@ -40,7 +40,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:maxWidth="280dp"
-                    android:text="Cá nhân hóa trải nghiệm đặt nước và nhận ưu đãi cho người mới."
+                    android:text="Personalize your drink orders and unlock newcomer perks."
                     android:textColor="@color/brand_on_primary"
                     android:textSize="14sp"
                     android:alpha="0.9" />
@@ -67,7 +67,7 @@
                 <com.google.android.material.textfield.TextInputLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Tên đăng nhập">
+                    android:hint="Username">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/edtUser"
@@ -81,7 +81,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
-                    android:hint="Mật khẩu"
+                    android:hint="Password"
                     app:endIconMode="password_toggle">
 
                     <com.google.android.material.textfield.TextInputEditText
@@ -96,7 +96,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
-                    android:hint="Họ tên (tùy chọn)">
+                    android:hint="Full name (optional)">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/edtFullName"
@@ -110,7 +110,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
-                    android:hint="Email (tùy chọn)">
+                    android:hint="Email (optional)">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/edtEmail"
@@ -124,7 +124,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
-                    android:hint="Số điện thoại (tùy chọn)">
+                    android:hint="Phone number (optional)">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/edtPhone"
@@ -139,7 +139,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="24dp"
-                    android:text="Tạo tài khoản" />
+                    android:text="Create account" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnBackLogin"
@@ -147,7 +147,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    android:text="Quay lại đăng nhập" />
+                    android:text="Back to sign in" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
     </LinearLayout>

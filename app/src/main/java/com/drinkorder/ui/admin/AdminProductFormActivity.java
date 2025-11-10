@@ -88,7 +88,7 @@ public class AdminProductFormActivity extends AppCompatActivity {
     btnSave.setOnClickListener(v -> saveProduct());
 
     editingProductId = getIntent().getIntExtra(EXTRA_PRODUCT_ID, -1);
-    toolbar.setTitle(editingProductId > 0 ? "Sua san pham" : "Them san pham");
+    toolbar.setTitle(editingProductId > 0 ? "Edit product" : "Add product");
 
     vm = new ViewModelProvider(this).get(AdminProductFormVM.class);
     vm.categories().observe(this, this::applyCategories);
@@ -146,15 +146,15 @@ public class AdminProductFormActivity extends AppCompatActivity {
     selectedImageSource = textOf(edtImage);
 
     if (TextUtils.isEmpty(name)) {
-      edtName.setError("Ten khong duoc de trong");
+      edtName.setError("Name cannot be empty");
       return;
     }
     if (price <= 0) {
-      edtPrice.setError("Gia phai lon hon 0");
+      edtPrice.setError("Price must be greater than 0");
       return;
     }
     if (categoryId <= 0) {
-      Toast.makeText(this, "Vui long chon danh muc", Toast.LENGTH_SHORT).show();
+      Toast.makeText(this, "Please select a category", Toast.LENGTH_SHORT).show();
       return;
     }
     if (rating <= 0) rating = 4.5;
@@ -174,14 +174,14 @@ public class AdminProductFormActivity extends AppCompatActivity {
     btnSave.setEnabled(false);
     vm.save(product, new AdminProductFormVM.SaveCallback() {
       @Override public void onSuccess(int productId) {
-        Toast.makeText(AdminProductFormActivity.this, "Da luu san pham", Toast.LENGTH_SHORT).show();
+        Toast.makeText(AdminProductFormActivity.this, "Product saved", Toast.LENGTH_SHORT).show();
         setResult(RESULT_OK);
         finish();
       }
 
       @Override public void onError(Throwable throwable) {
         btnSave.setEnabled(true);
-        Toast.makeText(AdminProductFormActivity.this, "Luu that bai: " + throwable.getMessage(), Toast.LENGTH_SHORT).show();
+        Toast.makeText(AdminProductFormActivity.this, "Save failed: " + throwable.getMessage(), Toast.LENGTH_SHORT).show();
       }
     });
   }

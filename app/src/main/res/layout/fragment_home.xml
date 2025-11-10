@@ -53,7 +53,7 @@
                     android:id="@+id/tvDeliverLabel"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="GIAO TỚI"
+                    android:text="DELIVER TO"
                     android:textAllCaps="true"
                     android:textColor="@color/brand_primary"
                     android:textSize="12sp"
@@ -69,7 +69,7 @@
                         android:id="@+id/tvLocation"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Văn phòng DOS"
+                        android:text="DOS Office"
                         android:textColor="@color/brand_on_surface"
                         android:textSize="16sp"
                         android:textStyle="bold" />
@@ -130,7 +130,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
-            android:text="Chào buổi chiều,"
+            android:text="Good afternoon,"
             android:textColor="@color/brand_muted_text"
             android:textSize="14sp" />
 
@@ -138,7 +138,7 @@
             android:id="@+id/tvGreetingHighlight"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Đã sẵn sàng cho thức uống mới?"
+            android:text="Ready for a new drink?"
             android:textColor="@color/brand_on_surface"
             android:textSize="22sp"
             android:textStyle="bold" />
@@ -149,7 +149,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="20dp"
-            android:hint="Bạn muốn uống gì hôm nay?"
+            android:hint="What would you like to drink today?"
             app:endIconMode="clear_text"
             app:startIconDrawable="@drawable/ic_search">
 
@@ -200,7 +200,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:text="Giỏ hàng"
+                        android:text="Cart"
                         android:textColor="@color/brand_on_secondary"
                         android:textAlignment="center"
                         android:textSize="14sp"
@@ -239,7 +239,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:text="Điểm nước"
+                        android:text="Drink station"
                         android:textColor="@color/brand_on_surface"
                         android:textAlignment="center"
                         android:textSize="14sp"
@@ -277,7 +277,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
-                        android:text="Đơn gần đây"
+                        android:text="Recent orders"
                         android:textColor="@color/brand_on_surface"
                         android:textAlignment="center"
                         android:textSize="14sp"
@@ -298,7 +298,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Danh mục nổi bật"
+                android:text="Featured categories"
                 android:textColor="@color/brand_on_surface"
                 android:textSize="18sp"
                 android:textStyle="bold" />
@@ -316,7 +316,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Xem tất cả"
+                    android:text="See all"
                     android:textColor="@color/brand_primary"
                     android:textSize="14sp"
                     android:textStyle="bold" />
@@ -357,7 +357,7 @@
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Đồ uống được yêu thích"
+                android:text="Popular drinks"
                 android:textColor="@color/brand_on_surface"
                 android:textSize="18sp"
                 android:textStyle="bold" />
@@ -375,7 +375,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Xem tất cả"
+                    android:text="See all"
                     android:textColor="@color/brand_primary"
                     android:textSize="14sp"
                     android:textStyle="bold" />

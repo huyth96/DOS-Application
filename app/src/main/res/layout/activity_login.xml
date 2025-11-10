@@ -31,7 +31,7 @@
                     android:id="@+id/tvTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Chào mừng trở lại"
+                    android:text="Welcome back"
                     android:textColor="@color/brand_on_primary"
                     android:textSize="20sp"
                     android:textStyle="bold" />
@@ -41,7 +41,7 @@
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
                     android:maxWidth="280dp"
-                    android:text="Đăng nhập để tiếp tục trải nghiệm giao nước nhanh chóng."
+                    android:text="Sign in to keep ordering drinks quickly."
                     android:textColor="@color/brand_on_primary"
                     android:textSize="14sp"
                     android:alpha="0.9" />
@@ -68,7 +68,7 @@
                 <com.google.android.material.textfield.TextInputLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Tên đăng nhập">
+                    android:hint="Username">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/edtUser"
@@ -81,7 +81,7 @@
                 <com.google.android.material.textfield.TextInputLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="Mật khẩu"
+                    android:hint="Password"
                     android:layout_marginTop="16dp"
                     app:endIconMode="password_toggle">
 
@@ -98,7 +98,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="24dp"
-                    android:text="Đăng nhập" />
+                    android:text="Sign in" />
 
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnGoRegister"
@@ -106,7 +106,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="12dp"
-                    android:text="Đăng ký tài khoản" />
+                    android:text="Create account" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
     </LinearLayout>

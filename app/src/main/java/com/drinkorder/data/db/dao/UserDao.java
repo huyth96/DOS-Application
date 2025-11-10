@@ -14,17 +14,17 @@ public interface UserDao {
   @Query("SELECT COUNT(*) FROM users")
   int count();
 
-  // ====== Thêm mới cho Edit Profile ======
+  // ====== Entries for Edit Profile ======
 
-  // Cập nhật Họ tên / Email / SĐT (giữ nguyên các cột khác)
+  // Update full name / email / phone while keeping other columns
   @Query("UPDATE users SET fullName = :full, email = :email, phone = :phone WHERE username = :username")
   void updateProfile(String username, String full, String email, String phone);
 
-  // Đổi mật khẩu (chỉ gọi khi người dùng nhập mật khẩu mới)
+  // Change password (only when the user provides a new one)
   @Query("UPDATE users SET passwordHash = :newHash WHERE username = :username")
   void updatePassword(String username, String newHash);
 
-  // (tuỳ chọn) Nếu bạn muốn cập nhật theo entity:
+  // (Optional) Update via entity if needed:
   @Update
   int update(UserEntity user);
 }

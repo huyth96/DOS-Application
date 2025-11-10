@@ -65,13 +65,13 @@ public class ProfileActivity extends AppCompatActivity {
       UserEntity user = AppDatabase.get(this).userDao().findByUsername(username);
       runOnUiThread(() -> {
         if (user == null) {
-          Toast.makeText(this, "Khong tim thay tai khoan", Toast.LENGTH_SHORT).show();
+          Toast.makeText(this, "Account not found", Toast.LENGTH_SHORT).show();
           return;
         }
         tvUsername.setText(user.username);
-        tvFullName.setText(user.fullName == null ? "(chua cap nhat)" : user.fullName);
-        tvEmail.setText(user.email == null ? "(chua cap nhat)" : user.email);
-        tvPhone.setText(user.phone == null ? "(chua cap nhat)" : user.phone);
+        tvFullName.setText(user.fullName == null ? "(not set)" : user.fullName);
+        tvEmail.setText(user.email == null ? "(not set)" : user.email);
+        tvPhone.setText(user.phone == null ? "(not set)" : user.phone);
         tvRole.setText(user.role == null ? "customer" : user.role);
       });
     }).start();

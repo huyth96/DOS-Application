@@ -85,7 +85,7 @@
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="6dp"
-                    android:text="Tên sản phẩm"
+                    android:text="Product name"
                     android:textColor="@color/brand_on_surface"
                     android:textSize="22sp"
                     android:textStyle="bold" />
@@ -137,7 +137,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="6dp"
-                        android:text="Miễn phí"
+                        android:text="Free"
                         android:textColor="@color/brand_muted_text"
                         android:textSize="14sp" />
 
@@ -156,7 +156,7 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginStart="6dp"
-                        android:text="15 phút"
+                        android:text="15 minutes"
                         android:textColor="@color/brand_muted_text"
                         android:textSize="14sp" />
                 </LinearLayout>
@@ -165,7 +165,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="24dp"
-                    android:text="Kích cỡ"
+                    android:text="Size"
                     android:textColor="@color/brand_on_surface"
                     android:textSize="15sp"
                     android:textStyle="bold" />
@@ -213,7 +213,7 @@
                         android:layout_width="0dp"
                         android:layout_height="wrap_content"
                         android:layout_weight="1"
-                        android:text="35.000 đ"
+                        android:text="35,000 VND"
                         android:textColor="@color/brand_on_surface"
                         android:textSize="22sp"
                         android:textStyle="bold" />
@@ -230,7 +230,7 @@
                         android:background="@drawable/bg_primary_button"
                         android:paddingStart="28dp"
                         android:paddingEnd="28dp"
-                        android:text="Thêm vào giỏ"
+                        android:text="Add to cart"
                         android:textColor="@color/brand_on_primary"
                         app:icon="@drawable/ic_nav_cart"
                         app:iconPadding="12dp"

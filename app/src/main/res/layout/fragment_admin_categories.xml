@@ -5,10 +5,10 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/brand_background"
-    tools:context=".ui.admin.AdminProductsFragment">
+    tools:context=".ui.admin.AdminCategoriesFragment">
 
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/contentContainer"
+        android:id="@+id/categoryContent"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:paddingStart="16dp"
@@ -18,7 +18,7 @@
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
         <LinearLayout
-            android:id="@+id/summaryRow"
+            android:id="@+id/categorySummary"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:gravity="center_vertical"
@@ -44,41 +44,7 @@
                     android:padding="16dp">
 
                     <TextView
-                        android:id="@+id/tvProductCount"
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:text="0 products"
-                        android:textColor="@color/brand_on_surface"
-                        android:textSize="18sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:text="Active items"
-                        android:textColor="@color/brand_muted_text"
-                        android:textSize="12sp" />
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginStart="8dp"
-                app:cardBackgroundColor="@color/brand_surface_elevated"
-                app:cardCornerRadius="18dp"
-                app:cardElevation="0dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
-
-                    <TextView
-                        android:id="@+id/tvCategoryCount"
+                        android:id="@+id/tvCategoriesTotal"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:text="0 categories"
@@ -90,7 +56,41 @@
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="4dp"
-                        android:text="Available groups"
+                        android:text="Grouping drinks"
+                        android:textColor="@color/brand_muted_text"
+                        android:textSize="12sp" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                app:cardBackgroundColor="@color/brand_surface_elevated"
+                app:cardCornerRadius="18dp"
+                app:cardElevation="0dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <TextView
+                        android:id="@+id/tvCategoriesUpdated"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Updated: --"
+                        android:textColor="@color/brand_on_surface"
+                        android:textSize="16sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="4dp"
+                        android:text="Latest change"
                         android:textColor="@color/brand_muted_text"
                         android:textSize="12sp" />
                 </LinearLayout>
@@ -98,18 +98,18 @@
         </LinearLayout>
 
         <com.google.android.material.textfield.TextInputLayout
-            android:id="@+id/tilSearchProducts"
+            android:id="@+id/tilSearchCategories"
             style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:hint="Search by name or category"
+            android:hint="Search categories"
             app:endIconMode="clear_text"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/summaryRow">
+            app:layout_constraintTop_toBottomOf="@id/categorySummary">
 
             <com.google.android.material.textfield.TextInputEditText
-                android:id="@+id/edtSearchProducts"
+                android:id="@+id/edtSearchCategories"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:imeOptions="actionDone"
@@ -117,7 +117,7 @@
         </com.google.android.material.textfield.TextInputLayout>
 
         <LinearLayout
-            android:id="@+id/emptyStateContainer"
+            android:id="@+id/categoryEmptyState"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:gravity="center"
@@ -128,58 +128,56 @@
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tilSearchProducts">
+            app:layout_constraintTop_toBottomOf="@id/tilSearchCategories">
 
             <TextView
-                android:id="@+id/tvEmptyState"
+                android:id="@+id/tvCategoryEmptyTitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="No products found"
+                android:text="No categories yet"
                 android:textColor="@color/brand_on_surface"
                 android:textSize="17sp"
                 android:textStyle="bold" />
 
             <TextView
-                android:id="@+id/tvEmptySubtitle"
+                android:id="@+id/tvCategoryEmptySubtitle"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="6dp"
                 android:gravity="center"
-                android:text="Try a different keyword or add a new product."
+                android:text="Organize drinks by creating a category."
                 android:textColor="@color/brand_muted_text"
                 android:textSize="14sp" />
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnAddProductFromEmpty"
+                android:id="@+id/btnAddCategoryFromEmpty"
                 style="@style/Widget.Material3.Button.TonalButton"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:text="Add product" />
+                android:text="Add category" />
         </LinearLayout>
 
         <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/rvAdminProducts"
+            android:id="@+id/rvAdminCategories"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:clipToPadding="false"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.0"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tilSearchProducts"
-            app:layout_constraintVertical_bias="1.0"
-            tools:listitem="@layout/item_admin_product" />
+            app:layout_constraintTop_toBottomOf="@id/tilSearchCategories"
+            tools:listitem="@layout/item_admin_category" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/fabAddProduct"
+        android:id="@+id/fabAddCategory"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
         android:layout_margin="20dp"
-        android:contentDescription="Add product"
+        android:contentDescription="Add category"
         app:backgroundTint="@color/brand_primary"
         app:srcCompat="@drawable/ic_add_24"
         app:tint="@color/brand_on_primary" />

@@ -4,13 +4,13 @@
     {"username": "admin", "passwordHash": "admin123", "fullName": "Admin", "role": "admin"}
   ],
   "categories": [
-    {"name": "Tra sua", "description": "Cac loai tra sua"},
-    {"name": "Ca phe", "description": "Do uong ca phe"}
+    {"name": "Milk tea", "description": "Creamy tea-based drinks"},
+    {"name": "Coffee", "description": "Strong and refreshing coffee drinks"}
   ],
   "products": [
     {
-      "name": "Tra sua truyen thong",
-      "description": "Tra dam hoa quyen voi sua beo ngot, uong kem tran chau deo dai.",
+      "name": "Classic milk tea",
+      "description": "Bold black tea shaken with creamy milk and chewy tapioca pearls.",
       "price": 25000,
       "stock": 100,
       "categoryId": 1,
@@ -18,8 +18,8 @@
       "rating": 4.7
     },
     {
-      "name": "Tra sua tran chau",
-      "description": "Ly tra sua thom ngon voi topping tran chau den deo, ngot thanh vua mieng.",
+      "name": "Brown sugar milk tea",
+      "description": "Smooth milk tea layered with caramelized brown sugar bubbles.",
       "price": 30000,
       "stock": 80,
       "categoryId": 1,
@@ -27,8 +27,8 @@
       "rating": 4.9
     },
     {
-      "name": "Ca phe sua da",
-      "description": "Ca phe robusta pha phin truyen thong ket hop sua dac beo ngay, dam chat Viet.",
+      "name": "Vietnamese iced coffee",
+      "description": "Rich robusta coffee slow-dripped over ice with condensed milk.",
       "price": 20000,
       "stock": 120,
       "categoryId": 2,

@@ -52,7 +52,7 @@ public class EditProfileActivity extends AppCompatActivity {
       String newPass = edtNewPass.getText().toString().trim();
 
       if (!email.isEmpty() && !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-        Toast.makeText(this, "Email không hợp lệ", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this, "Invalid email address", Toast.LENGTH_SHORT).show();
         return;
       }
 
@@ -61,7 +61,7 @@ public class EditProfileActivity extends AppCompatActivity {
         dao.updateProfile(username, full, email, phone);
         if (!newPass.isEmpty()) dao.updatePassword(username, newPass); // TODO: hash sau
         runOnUiThread(() -> {
-          Toast.makeText(this, "Đã lưu thay đổi", Toast.LENGTH_SHORT).show();
+          Toast.makeText(this, "Changes saved", Toast.LENGTH_SHORT).show();
           setResult(RESULT_OK, new Intent().putExtra("updated", true));
           finish();
         });

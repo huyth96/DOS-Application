@@ -5,5 +5,5 @@
     android:layout_height="wrap_content"
     android:checkable="true"
     android:clickable="true"
-    android:text="Danh muc"
+    android:text="Category"
     android:layout_marginEnd="12dp" />

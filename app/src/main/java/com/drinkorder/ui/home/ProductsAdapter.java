@@ -31,7 +31,7 @@ public class ProductsAdapter extends RecyclerView.Adapter<ProductsAdapter.VH> {
     private final List<ProductEntity> data = new ArrayList<>();
     private final NumberFormat priceFormat = NumberFormat.getInstance(new Locale("vi", "VN"));
 
-    private static final String[] ETA = {"15 phut", "12 phut", "20 phut", "18 phut"};
+    private static final String[] ETA = {"15 minutes", "12 minutes", "20 minutes", "18 minutes"};
     private static final String[] DELIVERY = {"Free", "12K", "Free", "9K"};
 
     public ProductsAdapter(OnAdd onAdd, OnClick onClick){
@@ -115,7 +115,7 @@ public class ProductsAdapter extends RecyclerView.Adapter<ProductsAdapter.VH> {
 
     private String resolveDescription(String description){
         if (description == null || description.trim().isEmpty()) {
-            return "Thuc uong dang duoc yeu thich";
+            return "This drink is trending right now";
         }
         return description;
     }

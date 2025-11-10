@@ -12,7 +12,7 @@
         android:background="@color/brand_primary"
         android:paddingStart="16dp"
         android:paddingEnd="16dp"
-        android:title="San pham"
+        android:title="Product details"
         android:titleTextColor="@color/brand_on_primary"
         app:navigationIcon="@drawable/ic_back_24"
         app:navigationIconTint="@color/brand_on_primary" />
@@ -33,7 +33,7 @@
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Ten san pham">
+                android:hint="Product name">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/edtName"
@@ -45,7 +45,7 @@
             <com.google.android.material.textfield.TextInputLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:hint="Mo ta"
+                android:hint="Description"
                 android:layout_marginTop="16dp">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -60,7 +60,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:hint="Gia (VND)">
+                android:hint="Price (VND)">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/edtPrice"
@@ -86,7 +86,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:hint="So luong ton kho">
+                android:hint="Available stock">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/edtStock"
@@ -99,7 +99,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:text="Danh muc"
+                android:text="Category"
                 android:textColor="@color/brand_on_surface"
                 android:textSize="14sp" />
 
@@ -113,7 +113,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
-                android:hint="Anh (URL hoac URI)">
+                android:hint="Image (URL or URI)">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/edtImageUrl"
@@ -128,7 +128,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                android:text="Chon anh tu may" />
+                android:text="Pick image from device" />
 
             <ImageView
                 android:id="@+id/imgPreview"
@@ -144,7 +144,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
-                android:text="Luu san pham" />
+                android:text="Save product" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 

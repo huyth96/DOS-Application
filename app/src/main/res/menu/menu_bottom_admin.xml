@@ -5,6 +5,10 @@
         android:icon="@drawable/ic_nav_cart"
         android:title="Products" />
     <item
+        android:id="@+id/tab_admin_categories"
+        android:icon="@drawable/ic_nav_category"
+        android:title="Categories" />
+    <item
         android:id="@+id/tab_profile"
         android:icon="@drawable/ic_nav_profile"
         android:title="Profile" />

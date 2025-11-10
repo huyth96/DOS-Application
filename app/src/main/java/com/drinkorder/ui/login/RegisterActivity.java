@@ -50,7 +50,7 @@ public class RegisterActivity extends AppCompatActivity {
     String phone = edtPhone.getText().toString().trim();
 
     if (u.isEmpty() || p.isEmpty()) {
-      Toast.makeText(this, "Vui lòng nhập username & password", Toast.LENGTH_SHORT).show();
+      Toast.makeText(this, "Please enter username & password", Toast.LENGTH_SHORT).show();
       return;
     }
 
@@ -60,7 +60,7 @@ public class RegisterActivity extends AppCompatActivity {
         var dao = AppDatabase.get(this).userDao();
         if (dao.findByUsername(u) != null) {
           runOnUiThread(() ->
-                  Toast.makeText(this, "Username đã tồn tại", Toast.LENGTH_SHORT).show()
+                  Toast.makeText(this, "Username already exists", Toast.LENGTH_SHORT).show()
           );
           return;
         }
@@ -83,12 +83,12 @@ public class RegisterActivity extends AppCompatActivity {
             startActivity(new Intent(this, MainActivity.class));
             finish();
           } else {
-            Toast.makeText(this, "Đăng ký thành công, nhưng auto login lỗi", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, "Registered successfully, but automatic login failed", Toast.LENGTH_SHORT).show();
           }
         });
       } catch (Exception e) {
         runOnUiThread(() ->
-                Toast.makeText(this, "Lỗi đăng ký: " + e.getMessage(), Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, "Registration failed: " + e.getMessage(), Toast.LENGTH_SHORT).show()
         );
       }
     }).start();

@@ -42,11 +42,11 @@ public class MapActivity extends AppCompatActivity implements OnMapReadyCallback
     public void onMapReady(@NonNull GoogleMap map) {
         this.gmap = map;
 
-        // Thêm marker vị trí cửa hàng (đổi title/subtitle theo ý bạn)
+        // Add marker vị trí cửa hàng (đổi title/subtitle theo ý bạn)
         gmap.addMarker(new MarkerOptions()
                 .position(SHOP)
                 .title("DrinkOrder Shop")
-                .snippet("Mở 8:00–22:00"));
+                .snippet("Open 8:00-22:00"));
         gmap.moveCamera(CameraUpdateFactory.newLatLngZoom(SHOP, DEFAULT_ZOOM));
 
         // Tắt cử chỉ/tuỳ chọn nếu muốn map tối giản:

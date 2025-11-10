@@ -113,7 +113,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="6dp"
-                android:text="15 phút"
+                android:text="15 minutes"
                 android:textColor="@color/brand_muted_text"
                 android:textSize="13sp"
                 android:textStyle="normal" />
@@ -151,7 +151,7 @@
                 android:background="@drawable/bg_primary_button"
                 android:paddingStart="28dp"
                 android:paddingEnd="28dp"
-                android:text="Thêm"
+                android:text="Add"
                 android:textColor="@color/brand_on_primary"
                 app:icon="@drawable/ic_nav_cart"
                 app:iconTint="@color/brand_on_primary"
