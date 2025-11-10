@@ -70,6 +70,8 @@ public class ChatFragment extends Fragment {
   private ImageButton btnSend;
   // Cờ đánh dấu đã có cuộc trò chuyện đang hoạt động hay chưa.
   private boolean hasActiveThread = false;
+  // Ghi lại role hiện tại để điều chỉnh hiển thị tên đối tác chat.
+  private boolean isAdmin = false;
 
   // TextWatcher để kích hoạt nút gửi khi người dùng nhập nội dung.
   private final TextWatcher textWatcher = new TextWatcher() {
@@ -144,6 +146,7 @@ public class ChatFragment extends Fragment {
     super.onViewCreated(view, savedInstanceState);
     // Lấy ChatViewModel chia sẻ với Activity để đồng bộ dữ liệu chat.
     viewModel = new ViewModelProvider(requireActivity()).get(ChatViewModel.class);
+    isAdmin = viewModel.isAdmin();
     // Cập nhật tên hiển thị của người gửi cục bộ trong adapter.
     if (adapter != null) {
       adapter.setLocalDisplayName(viewModel.getLocalDisplayName());
@@ -211,10 +214,26 @@ public class ChatFragment extends Fragment {
   private void renderActiveThread(@Nullable ChatThreadEntity thread) {
     hasActiveThread = thread != null;
     if (thread == null) {
-      tvThreadTitle.setText(R.string.chat_default_title);
-      tvThreadSubtitle.setText(R.string.chat_default_subtitle);
+      if (isAdmin) {
+        tvThreadTitle.setText(R.string.chat_default_title);
+        tvThreadSubtitle.setText(R.string.chat_default_subtitle);
+        if (adapter != null) {
+          adapter.setRemoteDisplayName(getString(R.string.chat_default_title));
+        }
+      } else {
+        String supportName = getString(R.string.chat_role_support);
+        tvThreadTitle.setText(supportName);
+        tvThreadSubtitle.setText(getString(R.string.chat_thread_with, supportName));
+        if (adapter != null) {
+          adapter.setRemoteDisplayName(supportName);
+        }
+      }
+    } else if (!isAdmin) {
+      String supportName = getString(R.string.chat_role_support);
+      tvThreadTitle.setText(supportName);
+      tvThreadSubtitle.setText(getString(R.string.chat_thread_with, supportName));
       if (adapter != null) {
-        adapter.setRemoteDisplayName(getString(R.string.chat_default_title));
+        adapter.setRemoteDisplayName(supportName);
       }
     } else {
       if (TextUtils.isEmpty(thread.title)) {
