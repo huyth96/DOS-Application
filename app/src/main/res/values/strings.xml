@@ -55,4 +55,15 @@
     <string name="admin_user_empty_filtered">No users match your search</string>
     <string name="admin_user_empty_all_subtitle">New accounts will appear here once customers register.</string>
     <string name="admin_user_empty_filtered_subtitle">Try a different keyword or clear the search box.</string>
+
+    <string name="admin_chat_connection_lost">Realtime connection is offline. Messages will send once reconnected. Ask the admin to retry the socket if this persists.</string>
+    <string name="admin_chat_empty_title">No conversations yet</string>
+    <string name="admin_chat_empty_subtitle">Customers who message the store will appear in this list.</string>
+    <string name="admin_chat_empty_message">Start a conversation to help this customer.</string>
+    <string name="admin_chat_snippet_admin_prefix">You: %1$s</string>
+    <string name="admin_chat_input_hint">Type a reply…</string>
+    <string name="admin_chat_send">Send</string>
+    <string name="admin_chat_presence_online">Online now</string>
+    <string name="admin_chat_presence_offline">Last active earlier</string>
+    <string name="admin_chat_unknown_user">Customer</string>
 </resources>

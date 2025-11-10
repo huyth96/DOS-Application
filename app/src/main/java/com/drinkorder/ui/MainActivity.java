@@ -21,6 +21,7 @@ import com.drinkorder.ui.home.HomeFragment;
 import com.drinkorder.ui.login.ProfileActivity;
 import com.drinkorder.ui.map.MapActivity;
 import com.drinkorder.ui.order.OrdersFragment;
+import com.drinkorder.ui.chat.admin.AdminChatFragment;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationView;
@@ -120,6 +121,9 @@ public class MainActivity extends AppCompatActivity {
       return true;
     } else if (menuId == R.id.nav_admin_users) {
       replaceFragment(new AdminUsersFragment());
+      return true;
+    } else if (menuId == R.id.nav_admin_chat) {
+      replaceFragment(new AdminChatFragment());
       return true;
     } else if (menuId == R.id.nav_admin_profile) {
       startActivity(new Intent(this, ProfileActivity.class));
