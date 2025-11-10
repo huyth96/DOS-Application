@@ -146,7 +146,7 @@ public class ChatRepository implements ChatSocketClient.Listener {
 
     ioExecutor.execute(() -> database.runInTransaction(() -> {
       int userId = authRepository != null ? authRepository.userId() : 0;
-      threadDao.touchThread(threadId, userId, body, senderRole, now, 0);
+      threadDao.touchThread(threadId, userId, null, body, senderRole, now, 0);
       messageDao.upsert(entity);
     }));
 
@@ -271,9 +271,10 @@ public class ChatRepository implements ChatSocketClient.Listener {
     entity.isOutgoing = remoteOutgoing || roleMatches;
     entity.isPending = false;
     final int unreadDelta = entity.isOutgoing ? 0 : 1;
+    final String threadTitle = extractThreadTitle(payload);
     final int userId = authRepository != null ? authRepository.userId() : 0;
     ioExecutor.execute(() -> database.runInTransaction(() -> {
-      threadDao.touchThread(entity.threadId, userId, entity.body, entity.senderRole, entity.sentAt, unreadDelta);
+      threadDao.touchThread(entity.threadId, userId, threadTitle, entity.body, entity.senderRole, entity.sentAt, unreadDelta);
       messageDao.upsert(entity);
     }));
   }
@@ -295,9 +296,34 @@ public class ChatRepository implements ChatSocketClient.Listener {
       ChatMessageEntity updated = messageDao.findById(messageId);
       if (updated != null) {
         int userId = authRepository != null ? authRepository.userId() : 0;
-        threadDao.touchThread(updated.threadId, userId, updated.body, updated.senderRole, updated.sentAt, 0);
+        threadDao.touchThread(updated.threadId, userId, null, updated.body, updated.senderRole, updated.sentAt, 0);
       }
     }));
+  }
+
+  private String extractThreadTitle(JsonObject payload) {
+    if (payload == null) { return null; }
+    if (payload.has("threadTitle") && payload.get("threadTitle").isJsonPrimitive()) {
+      String value = payload.get("threadTitle").getAsString();
+      if (!TextUtils.isEmpty(value)) { return value; }
+    }
+    if (payload.has("title") && payload.get("title").isJsonPrimitive()) {
+      String value = payload.get("title").getAsString();
+      if (!TextUtils.isEmpty(value)) { return value; }
+    }
+    if (payload.has("customerName") && payload.get("customerName").isJsonPrimitive()) {
+      String value = payload.get("customerName").getAsString();
+      if (!TextUtils.isEmpty(value)) { return value; }
+    }
+    if (payload.has("senderName") && payload.get("senderName").isJsonPrimitive()) {
+      String value = payload.get("senderName").getAsString();
+      if (!TextUtils.isEmpty(value)) { return value; }
+    }
+    if (payload.has("userName") && payload.get("userName").isJsonPrimitive()) {
+      String value = payload.get("userName").getAsString();
+      if (!TextUtils.isEmpty(value)) { return value; }
+    }
+    return null;
   }
 
   private void handleReadReceipt(JsonObject payload) {

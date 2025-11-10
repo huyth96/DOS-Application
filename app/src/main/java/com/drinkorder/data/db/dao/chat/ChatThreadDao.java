@@ -34,11 +34,14 @@ public interface ChatThreadDao {
   void updateUnread(String threadId, int count, long updatedAt);
 
   @Transaction
-  default void touchThread(String threadId, int userId, String lastMessage, String lastSenderRole, long timestamp, int unreadDelta) {
+  default void touchThread(String threadId, int userId, String title, String lastMessage, String lastSenderRole, long timestamp, int unreadDelta) {
     ChatThreadEntity existing = getThread(threadId);
     ChatThreadEntity target = existing == null ? new ChatThreadEntity() : existing;
     target.threadId = threadId;
     target.userId = existing == null ? userId : existing.userId;
+    if (title != null && !title.isEmpty()) {
+      target.title = title;
+    }
     target.lastMessage = lastMessage;
     target.lastSenderRole = lastSenderRole;
     target.lastTimestamp = timestamp;
