@@ -58,12 +58,14 @@ public class LoginActivity extends AppCompatActivity {
     }
 
     new Thread(() -> {
-      boolean ok = auth.login(u, p); // thực hiện check Room + lưu SharedPreferences
+      AuthRepository.LoginStatus status = auth.login(u, p); // thực hiện check Room + lưu SharedPreferences
       runOnUiThread(() -> {
-        if (ok) {
+        if (status == AuthRepository.LoginStatus.SUCCESS) {
           Toast.makeText(this, "Signed in successfully", Toast.LENGTH_SHORT).show();
           startActivity(new Intent(this, MainActivity.class));
           finish();
+        } else if (status == AuthRepository.LoginStatus.BANNED) {
+          Toast.makeText(this, "Your account has been banned. Contact support.", Toast.LENGTH_LONG).show();
         } else {
           Toast.makeText(this, "Incorrect username or password", Toast.LENGTH_SHORT).show();
         }

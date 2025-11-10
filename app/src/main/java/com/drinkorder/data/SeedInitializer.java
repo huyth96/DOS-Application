@@ -27,6 +27,7 @@ public class SeedInitializer {
               u.fullName = o.optString("fullName", null);
               u.role = o.optString("role","customer");
               u.createdAt = System.currentTimeMillis();
+              u.isBanned = o.optBoolean("isBanned", false);
               db.userDao().insert(u);
             }
           }

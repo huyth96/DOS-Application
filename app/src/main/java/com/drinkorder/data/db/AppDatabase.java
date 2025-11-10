@@ -7,7 +7,7 @@ import com.drinkorder.data.db.entity.*;
 @Database(entities = {
   UserEntity.class, CategoryEntity.class, ProductEntity.class,
   CartItemEntity.class, OrderEntity.class, OrderItemEntity.class, PaymentEntity.class
-}, version = 2, exportSchema = false)
+}, version = 3, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
   public abstract UserDao userDao();
   public abstract CategoryDao categoryDao();

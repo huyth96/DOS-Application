@@ -1,7 +1,11 @@
 package com.drinkorder.data.db.dao;
 
+import androidx.lifecycle.LiveData;
 import androidx.room.*;
+
 import com.drinkorder.data.db.entity.UserEntity;
+
+import java.util.List;
 
 @Dao
 public interface UserDao {
@@ -13,6 +17,12 @@ public interface UserDao {
 
   @Query("SELECT COUNT(*) FROM users")
   int count();
+
+  @Query("SELECT * FROM users ORDER BY createdAt DESC")
+  LiveData<List<UserEntity>> observeAll();
+
+  @Query("UPDATE users SET isBanned = :banned WHERE userId = :userId")
+  void updateBanStatus(int userId, boolean banned);
 
   // ====== Entries for Edit Profile ======
 

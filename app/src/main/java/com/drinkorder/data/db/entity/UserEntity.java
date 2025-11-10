@@ -9,4 +9,5 @@ public class UserEntity {
   @NonNull public String passwordHash;
   public String fullName, email, phone, role;
   public long createdAt;
+  public boolean isBanned;
 }

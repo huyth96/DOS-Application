@@ -37,4 +37,22 @@
     <string name="admin_categories_filter_visible">Visible</string>
     <string name="admin_categories_filter_hidden">Special</string>
     <string name="admin_hero_illustration_cd">Interface illustration</string>
+
+    <string name="admin_user_created_at">Created • %1$s</string>
+    <string name="admin_user_status_banned">Banned</string>
+    <string name="admin_user_status_active">Active</string>
+    <string name="admin_user_action_ban">Ban user</string>
+    <string name="admin_user_action_unban">Unban user</string>
+    <string name="admin_user_action_protected">Protected</string>
+    <string name="admin_user_confirm_ban_title">Ban account</string>
+    <string name="admin_user_confirm_unban_title">Unlock account</string>
+    <string name="admin_user_confirm_ban_message">The user will not be able to sign in until you unblock the account.</string>
+    <string name="admin_user_confirm_unban_message">Allow this user to sign in again?</string>
+    <string name="admin_user_ban_success">User status updated</string>
+    <string name="admin_user_ban_error">Unable to update status: %1$s</string>
+    <string name="admin_user_filter_hint">Search users</string>
+    <string name="admin_user_empty_all">No users found</string>
+    <string name="admin_user_empty_filtered">No users match your search</string>
+    <string name="admin_user_empty_all_subtitle">New accounts will appear here once customers register.</string>
+    <string name="admin_user_empty_filtered_subtitle">Try a different keyword or clear the search box.</string>
 </resources>

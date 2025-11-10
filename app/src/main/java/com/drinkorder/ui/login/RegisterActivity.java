@@ -74,14 +74,17 @@ public class RegisterActivity extends AppCompatActivity {
         user.phone = phone;
         user.role = "customer";
         user.createdAt = System.currentTimeMillis();
+        user.isBanned = false;
         dao.insert(user);
 
         // Auto login rồi vào Main
-        boolean ok = auth.login(u, p);
+        AuthRepository.LoginStatus status = auth.login(u, p);
         runOnUiThread(() -> {
-          if (ok) {
+          if (status == AuthRepository.LoginStatus.SUCCESS) {
             startActivity(new Intent(this, MainActivity.class));
             finish();
+          } else if (status == AuthRepository.LoginStatus.BANNED) {
+            Toast.makeText(this, "Account is temporarily disabled", Toast.LENGTH_SHORT).show();
           } else {
             Toast.makeText(this, "Registered successfully, but automatic login failed", Toast.LENGTH_SHORT).show();
           }
