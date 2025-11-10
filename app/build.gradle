@@ -11,6 +11,7 @@ android {
         versionCode 1
         versionName "1.0"
         vectorDrawables { useSupportLibrary true }
+        buildConfigField "String", "CHAT_SOCKET_URL", '"ws://10.0.2.2:8080/ws"'
     }
 
     buildTypes {
@@ -19,7 +20,10 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
-    buildFeatures { viewBinding true }
+    buildFeatures {
+        viewBinding true
+        buildConfig true
+    }
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
@@ -48,6 +52,8 @@ dependencies {
 
     implementation 'com.google.android.gms:play-services-maps:18.2.0'
     implementation 'com.google.android.gms:play-services-location:21.3.0'
+    implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+    implementation 'com.squareup.okhttp3:logging-interceptor:4.12.0'
 }
 
 // 🔒 Chắn mọi lib kéo activity lên 1.11.0

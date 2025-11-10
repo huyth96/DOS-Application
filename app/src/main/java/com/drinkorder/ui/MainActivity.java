@@ -16,13 +16,16 @@ import com.drinkorder.R;
 import com.drinkorder.ui.admin.AdminCategoriesFragment;
 import com.drinkorder.ui.admin.AdminProductsFragment;
 import com.drinkorder.ui.admin.AdminUsersFragment;
+import com.drinkorder.ui.admin.AdminChatFragment;
 import com.drinkorder.ui.cart.CartFragment;
+import com.drinkorder.ui.chat.ChatFragment;
 import com.drinkorder.ui.home.HomeFragment;
 import com.drinkorder.ui.login.ProfileActivity;
 import com.drinkorder.ui.map.MapActivity;
 import com.drinkorder.ui.order.OrdersFragment;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 import com.google.android.material.navigation.NavigationView;
 
 public class MainActivity extends AppCompatActivity {
@@ -31,6 +34,7 @@ public class MainActivity extends AppCompatActivity {
   private NavigationView adminNavView;
   private BottomNavigationView bottomNav;
   private MaterialToolbar toolbar;
+  private ExtendedFloatingActionButton mapFab;
   private boolean isAdmin;
 
   @Override
@@ -42,6 +46,7 @@ public class MainActivity extends AppCompatActivity {
     adminNavView = findViewById(R.id.navAdmin);
     bottomNav = findViewById(R.id.bottomNav);
     toolbar = findViewById(R.id.toolbarMain);
+    mapFab = findViewById(R.id.fabMap);
 
     SharedPreferences sp = getSharedPreferences("auth", Context.MODE_PRIVATE);
     isAdmin = "admin".equalsIgnoreCase(sp.getString("role", "customer"));
@@ -55,6 +60,7 @@ public class MainActivity extends AppCompatActivity {
 
   private void setupAdminNavigation() {
     if (bottomNav != null) bottomNav.setVisibility(View.GONE);
+    if (mapFab != null) mapFab.setVisibility(View.GONE);
     if (toolbar != null) {
       toolbar.setVisibility(View.VISIBLE);
       toolbar.setNavigationIcon(R.drawable.ic_menu_24);
@@ -96,9 +102,9 @@ public class MainActivity extends AppCompatActivity {
       } else if (id == R.id.tab_orders) {
         replaceFragment(new OrdersFragment());
         return true;
-      } else if (id == R.id.tab_map) {
-        startActivity(new Intent(this, MapActivity.class));
-        return false;
+      } else if (id == R.id.tab_chat) {
+        replaceFragment(new ChatFragment());
+        return true;
       } else if (id == R.id.tab_profile) {
         startActivity(new Intent(this, ProfileActivity.class));
         return true;
@@ -109,6 +115,11 @@ public class MainActivity extends AppCompatActivity {
     });
     bottomNav.setSelectedItemId(R.id.tab_home);
     replaceFragment(new HomeFragment());
+
+    if (mapFab != null) {
+      mapFab.setVisibility(View.VISIBLE);
+      mapFab.setOnClickListener(v -> startActivity(new Intent(this, MapActivity.class)));
+    }
   }
 
   private boolean handleAdminDestination(@IdRes int menuId) {
@@ -120,6 +131,9 @@ public class MainActivity extends AppCompatActivity {
       return true;
     } else if (menuId == R.id.nav_admin_users) {
       replaceFragment(new AdminUsersFragment());
+      return true;
+    } else if (menuId == R.id.nav_admin_chat) {
+      replaceFragment(new AdminChatFragment());
       return true;
     } else if (menuId == R.id.nav_admin_profile) {
       startActivity(new Intent(this, ProfileActivity.class));
