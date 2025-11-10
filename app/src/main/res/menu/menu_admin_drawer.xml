@@ -14,6 +14,10 @@
             android:id="@+id/nav_admin_users"
             android:icon="@drawable/ic_person"
             android:title="Users" />
+        <item
+            android:id="@+id/nav_admin_chat"
+            android:icon="@drawable/ic_nav_chat"
+            android:title="Chat" />
     </group>
 
     <item
