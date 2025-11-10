@@ -13,6 +13,10 @@
         android:icon="@drawable/ic_nav_orders"
         android:title="Orders" />
     <item
+        android:id="@+id/tab_chat"
+        android:icon="@drawable/ic_nav_chat"
+        android:title="@string/chat_menu_label" />
+    <item
         android:id="@+id/tab_map"
         android:icon="@drawable/ic_map_pin"
         android:title="Map" />

@@ -55,4 +55,19 @@
     <string name="admin_user_empty_filtered">No users match your search</string>
     <string name="admin_user_empty_all_subtitle">New accounts will appear here once customers register.</string>
     <string name="admin_user_empty_filtered_subtitle">Try a different keyword or clear the search box.</string>
+    <string name="chat_status_disconnected">Disconnected</string>
+    <string name="chat_status_connecting">Connecting…</string>
+    <string name="chat_status_connected">Connected</string>
+    <string name="chat_status_failed">Connection failed</string>
+    <string name="chat_default_title">Support chat</string>
+    <string name="chat_default_subtitle">We&apos;re here to help in real time.</string>
+    <string name="chat_empty_state">Start the conversation with our baristas team.</string>
+    <string name="chat_input_hint">Type a message</string>
+    <string name="chat_action_send">Send message</string>
+    <string name="chat_threads_title">Customer conversations</string>
+    <string name="chat_select_thread">Choose a conversation to reply.</string>
+    <string name="chat_no_threads">No conversations yet.</string>
+    <string name="chat_message_pending">Sending…</string>
+    <string name="chat_menu_label">Chat</string>
+    <string name="chat_thread_with">Chatting with %1$s</string>
 </resources>
