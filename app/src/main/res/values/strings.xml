@@ -1,3 +1,40 @@
 <resources>
     <string name="app_name">DrinkOrder</string>
+
+    <string name="admin_products_title">Product dashboard</string>
+    <string name="admin_products_subtitle">Track drinks and refresh stock in seconds.</string>
+    <string name="admin_toolbar_products_title">Product control center</string>
+    <string name="admin_toolbar_products_subtitle">Inventory overview &amp; catalog health</string>
+    <string name="admin_products_inventory_status">Inventory pulse: stable</string>
+    <string name="admin_products_stat_products_label">Active products</string>
+    <string name="admin_products_stat_categories_label">Product groups</string>
+    <string name="admin_products_metric_low_stock_label">Need replenishment</string>
+    <string name="admin_products_search_hint">Search by name or category</string>
+    <string name="admin_products_search_section_title">Search catalog</string>
+    <string name="admin_products_filter_section_title">Status filters</string>
+    <string name="admin_products_section_list">Product list</string>
+    <string name="admin_products_list_subtitle">Live overview</string>
+    <string name="action_new_product">Add product</string>
+    <string name="admin_products_filter_live">Visible</string>
+    <string name="admin_products_filter_low">Low stock</string>
+
+    <string name="admin_categories_title">Category dashboard</string>
+    <string name="admin_categories_subtitle">Keep drink families organized and easy to find.</string>
+    <string name="admin_toolbar_categories_title">Category workspace</string>
+    <string name="admin_toolbar_categories_subtitle">Structure every drink family</string>
+    <string name="admin_categories_structure_status">Menu structure ready</string>
+    <string name="admin_categories_stat_total_label">Total categories</string>
+    <string name="admin_categories_stat_updated_label">Last updated</string>
+    <string name="admin_categories_metric_hidden_label">Hidden</string>
+    <string name="admin_categories_search_hint">Search category or description</string>
+    <string name="admin_categories_search_section_title">Search categories</string>
+    <string name="admin_categories_filter_section_title">Visibility filters</string>
+    <string name="admin_categories_section_list">Category list</string>
+    <string name="admin_categories_list_subtitle">Organized view</string>
+    <string name="action_new_category">Add category</string>
+
+    <string name="admin_filter_all">All</string>
+    <string name="admin_categories_filter_visible">Visible</string>
+    <string name="admin_categories_filter_hidden">Special</string>
+    <string name="admin_hero_illustration_cd">Interface illustration</string>
 </resources>

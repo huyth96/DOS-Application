@@ -20,8 +20,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.drinkorder.R;
 import com.drinkorder.data.db.entity.CategoryEntity;
 import com.drinkorder.data.db.entity.ProductEntity;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
-
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 import com.google.android.material.textfield.TextInputEditText;
 
 import java.util.ArrayList;
@@ -43,6 +42,7 @@ public class AdminProductsFragment extends Fragment {
   private final List<ProductEntity> allProducts = new ArrayList<>();
   private Map<Integer, String> categoryNames = new HashMap<>();
   private String currentQuery = "";
+  private TextInputEditText edtSearch;
 
   @Nullable
   @Override
@@ -74,7 +74,7 @@ public class AdminProductsFragment extends Fragment {
     });
     recyclerView.setAdapter(adapter);
 
-    TextInputEditText edtSearch = view.findViewById(R.id.edtSearchProducts);
+    edtSearch = view.findViewById(R.id.edtSearchProducts);
     if (edtSearch != null) {
       edtSearch.addTextChangedListener(new TextWatcher() {
         @Override public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
@@ -86,20 +86,12 @@ public class AdminProductsFragment extends Fragment {
       });
     }
 
-    FloatingActionButton fab = view.findViewById(R.id.fabAddProduct);
-    fab.setOnClickListener(v -> {
-      if (getContext() != null) {
-        AdminProductFormActivity.start(getContext(), -1);
-      }
-    });
+    ExtendedFloatingActionButton fab = view.findViewById(R.id.fabAddProduct);
+    fab.setOnClickListener(v -> openProductForm());
 
     Button btnAddFromEmpty = view.findViewById(R.id.btnAddProductFromEmpty);
     if (btnAddFromEmpty != null) {
-      btnAddFromEmpty.setOnClickListener(v -> {
-        if (getContext() != null) {
-          AdminProductFormActivity.start(getContext(), -1);
-        }
-      });
+      btnAddFromEmpty.setOnClickListener(v -> openProductForm());
     }
 
     vm = new ViewModelProvider(this).get(AdminProductsVM.class);
@@ -190,4 +182,11 @@ public class AdminProductsFragment extends Fragment {
       tvEmptySubtitle.setText("Add a new product to get started.");
     }
   }
+
+  private void openProductForm() {
+    if (getContext() != null) {
+      AdminProductFormActivity.start(getContext(), -1);
+    }
+  }
 }
+

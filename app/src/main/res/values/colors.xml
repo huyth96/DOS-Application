@@ -26,6 +26,7 @@
     <color name="brand_muted_text">#667085</color>
     <color name="brand_warning">#FFB547</color>
     <color name="brand_success">#2ED3A7</color>
+    <color name="brand_divider">#E0E4F5</color>
 
     <color name="brand_error">#B3261E</color>
     <color name="brand_on_error">#FFFFFFFF</color>

@@ -8,180 +8,199 @@
     tools:context=".ui.admin.AdminProductsFragment">
 
     <androidx.constraintlayout.widget.ConstraintLayout
-        android:id="@+id/contentContainer"
+        android:id="@+id/productsContainer"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
-        android:paddingTop="32dp"
-        android:paddingBottom="96dp"
-        app:layout_behavior="@string/appbar_scrolling_view_behavior">
+        android:paddingStart="20dp"
+        android:paddingEnd="20dp"
+        android:paddingTop="12dp"
+        android:paddingBottom="12dp">
 
-        <LinearLayout
-            android:id="@+id/summaryRow"
+        <com.google.android.material.card.MaterialCardView
+            android:id="@+id/productsSummaryCard"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:paddingBottom="12dp"
-            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="12dp"
+            app:cardBackgroundColor="@color/brand_surface_elevated"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="0dp"
+            app:layout_constraintTop_toTopOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent">
+            app:layout_constraintEnd_toEndOf="parent">
 
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="0dp"
+            <LinearLayout
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
-                android:layout_weight="1"
-                app:cardBackgroundColor="@color/brand_surface_elevated"
-                app:cardCornerRadius="18dp"
-                app:cardElevation="0dp">
+                android:orientation="horizontal"
+                android:paddingStart="20dp"
+                android:paddingEnd="20dp"
+                android:paddingTop="16dp"
+                android:paddingBottom="16dp">
 
                 <LinearLayout
-                    android:layout_width="match_parent"
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Sản phẩm"
+                        android:textColor="@color/brand_muted_text"
+                        android:textSize="13sp" />
 
                     <TextView
                         android:id="@+id/tvProductCount"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="0 products"
+                        android:layout_marginTop="4dp"
+                        android:text="0 sản phẩm"
                         android:textColor="@color/brand_on_surface"
                         android:textSize="18sp"
-                        android:textStyle="bold" />
+                        android:textStyle="bold"
+                        tools:text="24 sản phẩm" />
+                </LinearLayout>
+
+                <View
+                    android:layout_width="1dp"
+                    android:layout_height="48dp"
+                    android:layout_marginStart="12dp"
+                    android:layout_marginEnd="12dp"
+                    android:background="@color/brand_divider" />
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:text="Active items"
+                        android:text="Danh mục"
                         android:textColor="@color/brand_muted_text"
-                        android:textSize="12sp" />
-                </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-
-            <com.google.android.material.card.MaterialCardView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:layout_marginStart="8dp"
-                app:cardBackgroundColor="@color/brand_surface_elevated"
-                app:cardCornerRadius="18dp"
-                app:cardElevation="0dp">
-
-                <LinearLayout
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:orientation="vertical"
-                    android:padding="16dp">
+                        android:textSize="13sp" />
 
                     <TextView
                         android:id="@+id/tvCategoryCount"
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="0 categories"
+                        android:layout_marginTop="4dp"
+                        android:text="0 danh mục"
                         android:textColor="@color/brand_on_surface"
                         android:textSize="18sp"
-                        android:textStyle="bold" />
-
-                    <TextView
-                        android:layout_width="wrap_content"
-                        android:layout_height="wrap_content"
-                        android:layout_marginTop="4dp"
-                        android:text="Available groups"
-                        android:textColor="@color/brand_muted_text"
-                        android:textSize="12sp" />
+                        android:textStyle="bold"
+                        tools:text="6 danh mục" />
                 </LinearLayout>
-            </com.google.android.material.card.MaterialCardView>
-        </LinearLayout>
+            </LinearLayout>
+        </com.google.android.material.card.MaterialCardView>
 
         <com.google.android.material.textfield.TextInputLayout
             android:id="@+id/tilSearchProducts"
-            style="@style/Widget.MaterialComponents.TextInputLayout.FilledBox"
+            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.Dense"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:hint="Search by name or category"
-            app:endIconMode="clear_text"
-            app:layout_constraintEnd_toEndOf="parent"
+            android:layout_marginTop="14dp"
+            android:hint="Tìm kiếm theo tên hoặc danh mục"
+            app:startIconDrawable="@drawable/ic_search"
+            app:layout_constraintTop_toBottomOf="@id/productsSummaryCard"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/summaryRow">
+            app:layout_constraintEnd_toEndOf="parent">
 
             <com.google.android.material.textfield.TextInputEditText
                 android:id="@+id/edtSearchProducts"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:imeOptions="actionDone"
-                android:inputType="text" />
+                android:imeOptions="actionSearch"
+                android:inputType="text"
+                android:maxLines="1" />
         </com.google.android.material.textfield.TextInputLayout>
-
-        <LinearLayout
-            android:id="@+id/emptyStateContainer"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:orientation="vertical"
-            android:paddingTop="48dp"
-            android:paddingBottom="32dp"
-            android:visibility="gone"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@id/tilSearchProducts">
-
-            <TextView
-                android:id="@+id/tvEmptyState"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="No products found"
-                android:textColor="@color/brand_on_surface"
-                android:textSize="17sp"
-                android:textStyle="bold" />
-
-            <TextView
-                android:id="@+id/tvEmptySubtitle"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="6dp"
-                android:gravity="center"
-                android:text="Try a different keyword or add a new product."
-                android:textColor="@color/brand_muted_text"
-                android:textSize="14sp" />
-
-            <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnAddProductFromEmpty"
-                style="@style/Widget.Material3.Button.TonalButton"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
-                android:text="Add product" />
-        </LinearLayout>
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/rvAdminProducts"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:clipToPadding="false"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintHorizontal_bias="0.0"
-            app:layout_constraintStart_toStartOf="parent"
+            android:overScrollMode="never"
+            android:paddingTop="12dp"
+            android:paddingBottom="96dp"
             app:layout_constraintTop_toBottomOf="@id/tilSearchProducts"
-            app:layout_constraintVertical_bias="1.0"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
             tools:listitem="@layout/item_admin_product" />
+
+        <LinearLayout
+            android:id="@+id/emptyStateContainer"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:gravity="center"
+            android:orientation="vertical"
+            android:padding="24dp"
+            android:visibility="gone"
+            app:layout_constraintTop_toTopOf="@id/rvAdminProducts"
+            app:layout_constraintBottom_toBottomOf="@id/rvAdminProducts"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            tools:visibility="visible">
+
+            <ImageView
+                android:layout_width="96dp"
+                android:layout_height="96dp"
+                android:background="@drawable/bg_app_gradient"
+                android:contentDescription="@null"
+                android:padding="20dp"
+                android:scaleType="centerInside"
+                android:src="@drawable/ic_truck_24"
+                android:clipToOutline="true" />
+
+            <TextView
+                android:id="@+id/tvEmptyState"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="20dp"
+                android:text="Chưa có sản phẩm"
+                android:textAlignment="center"
+                android:textColor="@color/brand_on_surface"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                tools:text="Không có kết quả tìm kiếm" />
+
+            <TextView
+                android:id="@+id/tvEmptySubtitle"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:gravity="center"
+                android:text="Thêm đồ uống đầu tiên để mở bán."
+                android:textAlignment="center"
+                android:textColor="@color/brand_muted_text"
+                android:textSize="14sp"
+                tools:text="Hãy thử từ khóa khác hoặc xóa bộ lọc." />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnAddProductFromEmpty"
+                style="@style/Widget.MaterialComponents.Button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="Thêm sản phẩm"
+                android:textAllCaps="false" />
+
+        </LinearLayout>
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
+    <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
         android:id="@+id/fabAddProduct"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
         android:layout_margin="20dp"
-        android:contentDescription="Add product"
-        app:backgroundTint="@color/brand_primary"
-        app:srcCompat="@drawable/ic_add_24"
-        app:tint="@color/brand_on_primary" />
+        android:text="Sản phẩm mới"
+        android:textAllCaps="false"
+        app:icon="@drawable/ic_add_24"
+        app:layout_anchor="@id/rvAdminProducts"
+        app:layout_anchorGravity="bottom|end" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

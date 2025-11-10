@@ -20,7 +20,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.drinkorder.R;
 import com.drinkorder.data.db.entity.CategoryEntity;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 import com.google.android.material.textfield.TextInputEditText;
 
 import java.text.SimpleDateFormat;
@@ -87,12 +87,12 @@ public class AdminCategoriesFragment extends Fragment {
       });
     }
 
-    FloatingActionButton fab = view.findViewById(R.id.fabAddCategory);
-    fab.setOnClickListener(v -> showCategoryDialog(null));
+    ExtendedFloatingActionButton fab = view.findViewById(R.id.fabAddCategory);
+    fab.setOnClickListener(v -> openCreateCategoryDialog());
 
     Button btnAddCategory = view.findViewById(R.id.btnAddCategoryFromEmpty);
     if (btnAddCategory != null) {
-      btnAddCategory.setOnClickListener(v -> showCategoryDialog(null));
+      btnAddCategory.setOnClickListener(v -> openCreateCategoryDialog());
     }
 
     vm = new ViewModelProvider(this).get(AdminCategoriesVM.class);
@@ -108,6 +108,10 @@ public class AdminCategoriesFragment extends Fragment {
     AdminCategoryDialog dialog = AdminCategoryDialog.newInstance(editing);
     dialog.setListener((name, description) -> saveCategory(name, description, editing));
     dialog.show(getChildFragmentManager(), "category_dialog");
+  }
+
+  private void openCreateCategoryDialog() {
+    showCategoryDialog(null);
   }
 
   private void saveCategory(String name, String description, @Nullable CategoryEntity editing) {
@@ -211,7 +215,7 @@ public class AdminCategoriesFragment extends Fragment {
     }
     if (tvCategoriesUpdated != null) {
       if (list == null || list.isEmpty()) {
-        tvCategoriesUpdated.setText("Updated: --");
+        tvCategoriesUpdated.setText("--");
       } else {
         long lastUpdated = 0;
         for (CategoryEntity c : list) {
@@ -220,7 +224,7 @@ public class AdminCategoriesFragment extends Fragment {
         String formatted = lastUpdated <= 0
             ? "--"
             : lastUpdatedFormat.format(new Date(lastUpdated));
-        tvCategoriesUpdated.setText("Updated: " + formatted);
+        tvCategoriesUpdated.setText(formatted);
       }
     }
   }

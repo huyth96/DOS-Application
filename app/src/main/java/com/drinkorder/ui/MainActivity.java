@@ -4,8 +4,12 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.view.View;
 
+import androidx.annotation.IdRes;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
 
 import com.drinkorder.R;
@@ -16,36 +20,75 @@ import com.drinkorder.ui.home.HomeFragment;
 import com.drinkorder.ui.login.ProfileActivity;
 import com.drinkorder.ui.map.MapActivity;
 import com.drinkorder.ui.order.OrdersFragment;
+import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.navigation.NavigationView;
 
 public class MainActivity extends AppCompatActivity {
+
+  private DrawerLayout drawerLayout;
+  private NavigationView adminNavView;
+  private BottomNavigationView bottomNav;
+  private MaterialToolbar toolbar;
+  private boolean isAdmin;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
     super.onCreate(savedInstanceState);
     setContentView(R.layout.activity_main);
 
-    BottomNavigationView nav = findViewById(R.id.bottomNav);
+    drawerLayout = findViewById(R.id.drawerLayout);
+    adminNavView = findViewById(R.id.navAdmin);
+    bottomNav = findViewById(R.id.bottomNav);
+    toolbar = findViewById(R.id.toolbarMain);
+
     SharedPreferences sp = getSharedPreferences("auth", Context.MODE_PRIVATE);
-    boolean isAdmin = "admin".equalsIgnoreCase(sp.getString("role", "customer"));
+    isAdmin = "admin".equalsIgnoreCase(sp.getString("role", "customer"));
 
-    nav.setOnItemSelectedListener(item -> {
-      int id = item.getItemId();
+    if (isAdmin) {
+      setupAdminNavigation();
+    } else {
+      setupCustomerNavigation();
+    }
+  }
 
-      if (isAdmin) {
-        if (id == R.id.tab_admin_products) {
-          replaceFragment(new AdminProductsFragment());
-          return true;
-        } else if (id == R.id.tab_admin_categories) {
-          replaceFragment(new AdminCategoriesFragment());
-          return true;
-        } else if (id == R.id.tab_profile) {
-          startActivity(new Intent(this, ProfileActivity.class));
-          return true;
+  private void setupAdminNavigation() {
+    if (bottomNav != null) bottomNav.setVisibility(View.GONE);
+    if (toolbar != null) {
+      toolbar.setVisibility(View.VISIBLE);
+      toolbar.setNavigationIcon(R.drawable.ic_menu_24);
+      toolbar.setNavigationOnClickListener(v -> {
+        if (drawerLayout != null) drawerLayout.openDrawer(GravityCompat.START);
+      });
+    }
+    if (drawerLayout != null) {
+      drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_UNLOCKED);
+    }
+    if (adminNavView != null) {
+      adminNavView.setVisibility(View.VISIBLE);
+      adminNavView.setNavigationItemSelectedListener(item -> {
+        boolean handled = handleAdminDestination(item.getItemId());
+        if (handled && drawerLayout != null) {
+          drawerLayout.closeDrawer(GravityCompat.START);
         }
-        return false;
-      }
+        return handled;
+      });
+      adminNavView.setCheckedItem(R.id.nav_admin_products);
+    }
+    handleAdminDestination(R.id.nav_admin_products);
+  }
 
+  private void setupCustomerNavigation() {
+    if (drawerLayout != null) {
+      drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);
+    }
+    if (adminNavView != null) adminNavView.setVisibility(View.GONE);
+    if (toolbar != null) toolbar.setVisibility(View.GONE);
+    if (bottomNav == null) return;
+
+    bottomNav.setVisibility(View.VISIBLE);
+    bottomNav.setOnItemSelectedListener(item -> {
+      int id = item.getItemId();
       if (id == R.id.tab_cart) {
         replaceFragment(new CartFragment());
         return true;
@@ -63,16 +106,22 @@ public class MainActivity extends AppCompatActivity {
         return true;
       }
     });
+    bottomNav.setSelectedItemId(R.id.tab_home);
+    replaceFragment(new HomeFragment());
+  }
 
-    if (isAdmin) {
-      nav.getMenu().clear();
-      nav.inflateMenu(R.menu.menu_bottom_admin);
-      nav.setSelectedItemId(R.id.tab_admin_products);
+  private boolean handleAdminDestination(@IdRes int menuId) {
+    if (menuId == R.id.nav_admin_products) {
       replaceFragment(new AdminProductsFragment());
-    } else {
-      nav.setSelectedItemId(R.id.tab_home);
-      replaceFragment(new HomeFragment());
+      return true;
+    } else if (menuId == R.id.nav_admin_categories) {
+      replaceFragment(new AdminCategoriesFragment());
+      return true;
+    } else if (menuId == R.id.nav_admin_profile) {
+      startActivity(new Intent(this, ProfileActivity.class));
+      return true;
     }
+    return false;
   }
 
   private void replaceFragment(Fragment fragment) {
@@ -80,5 +129,14 @@ public class MainActivity extends AppCompatActivity {
         .beginTransaction()
         .replace(R.id.container, fragment)
         .commit();
+  }
+
+  @Override
+  public void onBackPressed() {
+    if (isAdmin && drawerLayout != null && drawerLayout.isDrawerOpen(GravityCompat.START)) {
+      drawerLayout.closeDrawer(GravityCompat.START);
+      return;
+    }
+    super.onBackPressed();
   }
 }
