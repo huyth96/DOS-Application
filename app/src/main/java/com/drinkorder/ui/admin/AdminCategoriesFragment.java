@@ -2,6 +2,7 @@ package com.drinkorder.ui.admin;
 
 import android.os.Bundle;
 import android.text.Editable;
+import android.text.TextUtils;
 import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -19,6 +20,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.drinkorder.R;
 import com.drinkorder.data.db.entity.CategoryEntity;
+import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 import com.google.android.material.textfield.TextInputEditText;
@@ -37,12 +39,14 @@ public class AdminCategoriesFragment extends Fragment {
   private View emptyStateContainer;
   private TextView tvCategoriesTotal;
   private TextView tvCategoriesUpdated;
+  private TextView tvCategoriesHealth;
   private TextView tvCategoryEmptyTitle;
   private TextView tvCategoryEmptySubtitle;
   private final List<CategoryEntity> allCategories = new ArrayList<>();
   private final SimpleDateFormat lastUpdatedFormat =
       new SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault());
   private String currentQuery = "";
+  private MaterialToolbar toolbar;
 
   @Nullable
   @Override
@@ -56,8 +60,10 @@ public class AdminCategoriesFragment extends Fragment {
 
     recyclerView = view.findViewById(R.id.rvAdminCategories);
     emptyStateContainer = view.findViewById(R.id.categoryEmptyState);
+    toolbar = view.findViewById(R.id.toolbarAdmin);
     tvCategoriesTotal = view.findViewById(R.id.tvCategoriesTotal);
     tvCategoriesUpdated = view.findViewById(R.id.tvCategoriesUpdated);
+    tvCategoriesHealth = view.findViewById(R.id.tvCategoriesHealth);
     tvCategoryEmptyTitle = view.findViewById(R.id.tvCategoryEmptyTitle);
     tvCategoryEmptySubtitle = view.findViewById(R.id.tvCategoryEmptySubtitle);
 
@@ -196,36 +202,59 @@ public class AdminCategoriesFragment extends Fragment {
     recyclerView.setVisibility(showEmpty ? View.GONE : View.VISIBLE);
     if (!showEmpty || tvCategoryEmptyTitle == null || tvCategoryEmptySubtitle == null) return;
     if (allCategories.isEmpty()) {
-      tvCategoryEmptyTitle.setText("No categories yet");
-      tvCategoryEmptySubtitle.setText("Organize drinks by creating a category.");
+      tvCategoryEmptyTitle.setText(R.string.admin_categories_empty_title);
+      tvCategoryEmptySubtitle.setText(R.string.admin_categories_empty_subtitle);
     } else if (fromSearch) {
-      tvCategoryEmptyTitle.setText("Nothing matches your search");
-      tvCategoryEmptySubtitle.setText("Try another keyword or clear the filter.");
+      tvCategoryEmptyTitle.setText(R.string.admin_categories_empty_search_title);
+      tvCategoryEmptySubtitle.setText(R.string.admin_categories_empty_search_subtitle);
     } else {
-      tvCategoryEmptyTitle.setText("No categories available");
-      tvCategoryEmptySubtitle.setText("Use the button below to add one.");
+      tvCategoryEmptyTitle.setText(R.string.admin_categories_empty_title);
+      tvCategoryEmptySubtitle.setText(R.string.admin_categories_empty_subtitle);
     }
   }
 
   private void updateSummary(@Nullable List<CategoryEntity> list) {
     int count = list == null ? 0 : list.size();
     if (tvCategoriesTotal != null) {
-      tvCategoriesTotal.setText(String.format(Locale.getDefault(), "%d %s", count,
-          count == 1 ? "category" : "categories"));
+      tvCategoriesTotal.setText(String.valueOf(count));
+    }
+    String lastUpdatedText;
+    int described = 0;
+    if (list == null || list.isEmpty()) {
+      lastUpdatedText = getString(R.string.admin_categories_updated_placeholder);
+    } else {
+      long lastUpdated = 0;
+      for (CategoryEntity c : list) {
+        if (!TextUtils.isEmpty(c.description)) described++;
+        if (c.createdAt > lastUpdated) lastUpdated = c.createdAt;
+      }
+      lastUpdatedText = lastUpdated <= 0
+          ? getString(R.string.admin_categories_updated_placeholder)
+          : lastUpdatedFormat.format(new Date(lastUpdated));
     }
     if (tvCategoriesUpdated != null) {
-      if (list == null || list.isEmpty()) {
-        tvCategoriesUpdated.setText("--");
+      tvCategoriesUpdated.setText(lastUpdatedText);
+    }
+    String health;
+    if (count == 0) {
+      health = getString(R.string.admin_categories_health_empty);
+    } else {
+      int threshold = Math.max(1, (int) Math.ceil(count * 0.6));
+      if (described >= threshold) {
+        health = getString(R.string.admin_categories_health_ready);
       } else {
-        long lastUpdated = 0;
-        for (CategoryEntity c : list) {
-          if (c.createdAt > lastUpdated) lastUpdated = c.createdAt;
-        }
-        String formatted = lastUpdated <= 0
-            ? "--"
-            : lastUpdatedFormat.format(new Date(lastUpdated));
-        tvCategoriesUpdated.setText(formatted);
+        health = getString(R.string.admin_categories_health_building);
       }
     }
+    if (tvCategoriesHealth != null) {
+      tvCategoriesHealth.setText(health);
+    }
+    updateToolbarSubtitle(count, lastUpdatedText, health);
+  }
+
+  private void updateToolbarSubtitle(int count, String lastUpdatedText, String health) {
+    if (toolbar == null) return;
+    String subtitle = getString(R.string.admin_toolbar_categories_subtitle_format, count, lastUpdatedText, health);
+    toolbar.setSubtitle(subtitle);
   }
 }

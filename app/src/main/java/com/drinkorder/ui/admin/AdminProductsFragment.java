@@ -20,6 +20,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.drinkorder.R;
 import com.drinkorder.data.db.entity.CategoryEntity;
 import com.drinkorder.data.db.entity.ProductEntity;
+import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton;
 import com.google.android.material.textfield.TextInputEditText;
 
@@ -35,6 +36,7 @@ public class AdminProductsFragment extends Fragment {
   private AdminProductsAdapter adapter;
   private TextView tvProductCount;
   private TextView tvCategoryCount;
+  private TextView tvLowStockCount;
   private View emptyStateContainer;
   private TextView tvEmptyTitle;
   private TextView tvEmptySubtitle;
@@ -43,6 +45,10 @@ public class AdminProductsFragment extends Fragment {
   private Map<Integer, String> categoryNames = new HashMap<>();
   private String currentQuery = "";
   private TextInputEditText edtSearch;
+  private MaterialToolbar toolbar;
+  private int categoryCount;
+
+  private static final int LOW_STOCK_THRESHOLD = 5;
 
   @Nullable
   @Override
@@ -55,8 +61,10 @@ public class AdminProductsFragment extends Fragment {
   public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
 
+    toolbar = view.findViewById(R.id.toolbarAdmin);
     tvProductCount = view.findViewById(R.id.tvProductCount);
     tvCategoryCount = view.findViewById(R.id.tvCategoryCount);
+    tvLowStockCount = view.findViewById(R.id.tvLowStockCount);
     emptyStateContainer = view.findViewById(R.id.emptyStateContainer);
     tvEmptyTitle = view.findViewById(R.id.tvEmptyState);
     tvEmptySubtitle = view.findViewById(R.id.tvEmptySubtitle);
@@ -98,16 +106,18 @@ public class AdminProductsFragment extends Fragment {
     vm.products.observe(getViewLifecycleOwner(), list -> {
       allProducts.clear();
       if (list != null) allProducts.addAll(list);
-      updateProductCount(allProducts.size());
+      refreshSummaryMetrics();
       applyFilters();
     });
     vm.categories.observe(getViewLifecycleOwner(), list -> {
       categoryNames = toCategoryMap(list);
       adapter.setCategoryNames(categoryNames);
-      int count = list == null ? 0 : list.size();
-      tvCategoryCount.setText(String.format(Locale.getDefault(), "%d %s", count,
-          count == 1 ? "category" : "categories"));
+      categoryCount = list == null ? 0 : list.size();
+      if (tvCategoryCount != null) {
+        tvCategoryCount.setText(String.valueOf(categoryCount));
+      }
       applyFilters();
+      refreshSummaryMetrics();
     });
   }
 
@@ -159,10 +169,25 @@ public class AdminProductsFragment extends Fragment {
     updateEmptyState(filtered.isEmpty(), !query.isEmpty());
   }
 
-  private void updateProductCount(int total) {
-    if (tvProductCount == null) return;
-    tvProductCount.setText(String.format(Locale.getDefault(), "%d %s", total,
-        total == 1 ? "product" : "products"));
+  private void refreshSummaryMetrics() {
+    int total = allProducts.size();
+    int lowStock = 0;
+    for (ProductEntity product : allProducts) {
+      Integer stock = product.stock;
+      if (stock != null && stock >= 0 && stock <= LOW_STOCK_THRESHOLD) {
+        lowStock++;
+      }
+    }
+    if (tvProductCount != null) {
+      tvProductCount.setText(String.valueOf(total));
+    }
+    if (tvCategoryCount != null) {
+      tvCategoryCount.setText(String.valueOf(categoryCount));
+    }
+    if (tvLowStockCount != null) {
+      tvLowStockCount.setText(String.valueOf(lowStock));
+    }
+    updateToolbarSubtitle(total, lowStock);
   }
 
   private void updateEmptyState(boolean showEmpty, boolean isFiltering) {
@@ -172,15 +197,21 @@ public class AdminProductsFragment extends Fragment {
     if (!showEmpty) return;
     if (tvEmptyTitle == null || tvEmptySubtitle == null) return;
     if (allProducts.isEmpty()) {
-      tvEmptyTitle.setText("No products yet");
-      tvEmptySubtitle.setText("Tap the button below to add your first drink.");
+      tvEmptyTitle.setText(R.string.admin_products_empty_title);
+      tvEmptySubtitle.setText(R.string.admin_products_empty_subtitle);
     } else if (isFiltering) {
-      tvEmptyTitle.setText("No products match your search");
-      tvEmptySubtitle.setText("Try another keyword or clear the filter.");
+      tvEmptyTitle.setText(R.string.admin_products_empty_search_title);
+      tvEmptySubtitle.setText(R.string.admin_products_empty_search_subtitle);
     } else {
-      tvEmptyTitle.setText("No products found");
-      tvEmptySubtitle.setText("Add a new product to get started.");
+      tvEmptyTitle.setText(R.string.admin_products_empty_title);
+      tvEmptySubtitle.setText(R.string.admin_products_empty_subtitle);
     }
+  }
+
+  private void updateToolbarSubtitle(int total, int lowStock) {
+    if (toolbar == null) return;
+    String subtitle = getString(R.string.admin_toolbar_products_subtitle_format, total, categoryCount, lowStock);
+    toolbar.setSubtitle(subtitle);
   }
 
   private void openProductForm() {

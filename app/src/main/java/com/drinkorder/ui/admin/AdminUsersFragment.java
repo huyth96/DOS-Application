@@ -18,6 +18,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.drinkorder.R;
 import com.drinkorder.data.db.entity.UserEntity;
+import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
 import com.google.android.material.textfield.TextInputEditText;
 
@@ -33,10 +34,12 @@ public class AdminUsersFragment extends Fragment {
   private View emptyState;
   private TextView tvTotal;
   private TextView tvBanned;
+  private TextView tvActive;
   private TextView tvEmptyTitle;
   private TextView tvEmptySubtitle;
   private final List<UserEntity> allUsers = new ArrayList<>();
   private String currentQuery = "";
+  private MaterialToolbar toolbar;
 
   @Nullable
   @Override
@@ -49,10 +52,12 @@ public class AdminUsersFragment extends Fragment {
   public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
     super.onViewCreated(view, savedInstanceState);
 
+    toolbar = view.findViewById(R.id.toolbarAdmin);
     recyclerView = view.findViewById(R.id.rvAdminUsers);
     emptyState = view.findViewById(R.id.userEmptyState);
     tvTotal = view.findViewById(R.id.tvUsersTotal);
     tvBanned = view.findViewById(R.id.tvUsersBanned);
+    tvActive = view.findViewById(R.id.tvUsersActive);
     tvEmptyTitle = view.findViewById(R.id.tvUserEmptyTitle);
     tvEmptySubtitle = view.findViewById(R.id.tvUserEmptySubtitle);
 
@@ -89,12 +94,11 @@ public class AdminUsersFragment extends Fragment {
     for (UserEntity user : allUsers) {
       if (user.isBanned) banned++;
     }
-    if (tvTotal != null) {
-      tvTotal.setText(String.valueOf(total));
-    }
-    if (tvBanned != null) {
-      tvBanned.setText(String.valueOf(banned));
-    }
+    if (tvTotal != null) tvTotal.setText(String.valueOf(total));
+    if (tvBanned != null) tvBanned.setText(String.valueOf(banned));
+    int active = Math.max(0, total - banned);
+    if (tvActive != null) tvActive.setText(String.valueOf(active));
+    updateToolbarSubtitle(total, active, banned);
   }
 
   private void applyFilters() {
@@ -171,5 +175,11 @@ public class AdminUsersFragment extends Fragment {
         Toast.makeText(requireContext(), getString(R.string.admin_user_ban_error, msg), Toast.LENGTH_SHORT).show();
       }
     });
+  }
+
+  private void updateToolbarSubtitle(int total, int active, int banned) {
+    if (toolbar == null) return;
+    String subtitle = getString(R.string.admin_toolbar_users_subtitle_format, total, active, banned);
+    toolbar.setSubtitle(subtitle);
   }
 }

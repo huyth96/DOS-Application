@@ -5,6 +5,7 @@
     <string name="admin_products_subtitle">Track drinks and refresh stock in seconds.</string>
     <string name="admin_toolbar_products_title">Product control center</string>
     <string name="admin_toolbar_products_subtitle">Inventory overview &amp; catalog health</string>
+    <string name="admin_toolbar_products_subtitle_format">%1$d products • %2$d categories • %3$d low stock</string>
     <string name="admin_products_inventory_status">Inventory pulse: stable</string>
     <string name="admin_products_stat_products_label">Active products</string>
     <string name="admin_products_stat_categories_label">Product groups</string>
@@ -22,10 +23,11 @@
     <string name="admin_categories_subtitle">Keep drink families organized and easy to find.</string>
     <string name="admin_toolbar_categories_title">Category workspace</string>
     <string name="admin_toolbar_categories_subtitle">Structure every drink family</string>
+    <string name="admin_toolbar_categories_subtitle_format">%1$d categories • Updated %2$s • %3$s</string>
     <string name="admin_categories_structure_status">Menu structure ready</string>
     <string name="admin_categories_stat_total_label">Total categories</string>
     <string name="admin_categories_stat_updated_label">Last updated</string>
-    <string name="admin_categories_metric_hidden_label">Hidden</string>
+    <string name="admin_categories_metric_hidden_label">Structure health</string>
     <string name="admin_categories_search_hint">Search category or description</string>
     <string name="admin_categories_search_section_title">Search categories</string>
     <string name="admin_categories_filter_section_title">Visibility filters</string>
@@ -33,10 +35,23 @@
     <string name="admin_categories_list_subtitle">Organized view</string>
     <string name="action_new_category">Add category</string>
 
+    <string name="admin_dashboard_metrics_title">Key metrics</string>
+
+    <string name="admin_categories_health_empty">Add your first category</string>
+    <string name="admin_categories_health_building">Keep building your structure</string>
+    <string name="admin_categories_health_ready">Menu structure ready</string>
+    <string name="admin_categories_updated_placeholder">Not updated yet</string>
+
     <string name="admin_filter_all">All</string>
     <string name="admin_categories_filter_visible">Visible</string>
     <string name="admin_categories_filter_hidden">Special</string>
     <string name="admin_hero_illustration_cd">Interface illustration</string>
+
+    <string name="admin_toolbar_users_title">User management</string>
+    <string name="admin_toolbar_users_subtitle_format">%1$d users • %2$d active • %3$d banned</string>
+    <string name="admin_users_metric_total_label">Total users</string>
+    <string name="admin_users_metric_active_label">Active users</string>
+    <string name="admin_users_metric_banned_label">Banned</string>
 
     <string name="admin_user_created_at">Created • %1$s</string>
     <string name="admin_user_status_banned">Banned</string>
@@ -55,4 +70,35 @@
     <string name="admin_user_empty_filtered">No users match your search</string>
     <string name="admin_user_empty_all_subtitle">New accounts will appear here once customers register.</string>
     <string name="admin_user_empty_filtered_subtitle">Try a different keyword or clear the search box.</string>
+
+    <string name="admin_products_empty_title">No products yet</string>
+    <string name="admin_products_empty_subtitle">Tap the button below to add your first drink.</string>
+    <string name="admin_products_empty_search_title">No products match your search</string>
+    <string name="admin_products_empty_search_subtitle">Try another keyword or clear the filter.</string>
+
+    <string name="admin_categories_empty_title">No categories yet</string>
+    <string name="admin_categories_empty_subtitle">Organize drinks by creating a category.</string>
+    <string name="admin_categories_empty_search_title">Nothing matches your search</string>
+    <string name="admin_categories_empty_search_subtitle">Try another keyword or clear the filter.</string>
+
+    <string name="admin_category_dialog_title">Category details</string>
+    <string name="admin_category_dialog_subtitle">Provide a clear name and short description so your team can stay in sync.</string>
+    <string name="admin_category_dialog_name_hint">Category name</string>
+    <string name="admin_category_dialog_description_hint">Short description</string>
+
+    <string name="admin_product_form_title">Product details</string>
+    <string name="admin_product_form_hero_title">Create a new drink</string>
+    <string name="admin_product_form_hero_subtitle">Fill in accurate info to sync menu, price, and stock.</string>
+    <string name="admin_product_form_section_basic">Basic information</string>
+    <string name="admin_product_form_section_pricing">Pricing &amp; inventory</string>
+    <string name="admin_product_form_section_media">Media</string>
+    <string name="admin_product_form_hint_name">Product name</string>
+    <string name="admin_product_form_hint_description">Detailed description</string>
+    <string name="admin_product_form_hint_price">Price (VND)</string>
+    <string name="admin_product_form_hint_rating">Rating (0-5)</string>
+    <string name="admin_product_form_hint_stock">Stock quantity</string>
+    <string name="admin_product_form_label_category">Category</string>
+    <string name="admin_product_form_hint_image_url">Image link</string>
+    <string name="admin_product_form_button_pick_image">Choose image from device</string>
+    <string name="admin_product_form_button_save">Save product</string>
 </resources>

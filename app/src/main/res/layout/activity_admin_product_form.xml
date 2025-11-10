@@ -6,24 +6,30 @@
     android:layout_height="match_parent"
     android:background="@color/brand_background">
 
-    <com.google.android.material.appbar.MaterialToolbar
-        android:id="@+id/toolbarForm"
+    <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/brand_primary"
-        android:paddingStart="16dp"
-        android:paddingEnd="16dp"
-        android:title="Product details"
-        android:titleTextColor="@color/brand_on_primary"
-        app:navigationIcon="@drawable/ic_back_24"
-        app:navigationIconTint="@color/brand_on_primary" />
+        android:background="@color/brand_surface"
+        android:elevation="0dp">
+
+        <com.google.android.material.appbar.MaterialToolbar
+            android:id="@+id/toolbarForm"
+            style="@style/Widget.DrinkOrder.Toolbar.Admin"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:paddingStart="20dp"
+            android:paddingEnd="20dp"
+            app:navigationIcon="@drawable/ic_back_24"
+            app:navigationIconTint="@color/brand_on_surface"
+            app:title="@string/admin_product_form_title" />
+    </com.google.android.material.appbar.AppBarLayout>
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:paddingStart="20dp"
         android:paddingEnd="20dp"
-        android:paddingTop="88dp"
+        android:paddingTop="16dp"
         android:paddingBottom="24dp"
         app:layout_behavior="@string/appbar_scrolling_view_behavior">
 
@@ -35,12 +41,10 @@
 
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardHero"
+                style="@style/Widget.DrinkOrder.Card"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                app:cardBackgroundColor="@color/brand_surface_elevated"
-                app:cardCornerRadius="24dp"
-                app:cardElevation="0dp">
+                android:layout_marginBottom="16dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -69,32 +73,30 @@
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="Thêm đồ uống mới"
+                            android:text="@string/admin_product_form_hero_title"
                             android:textColor="@color/brand_on_surface"
                             android:textSize="18sp"
                             android:textStyle="bold"
-                            tools:text="Thêm đồ uống mới" />
+                            tools:text="Create a new drink" />
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
                             android:layout_marginTop="4dp"
-                            android:text="Điền thông tin chính xác để đồng bộ menu, giá và kho."
+                            android:text="@string/admin_product_form_hero_subtitle"
                             android:textColor="@color/brand_muted_text"
                             android:textSize="13sp"
-                            tools:text="Điền thông tin chính xác để đồng bộ menu, giá và kho." />
+                            tools:text="Fill in accurate info to sync menu, price, and stock." />
                     </LinearLayout>
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardBasic"
+                style="@style/Widget.DrinkOrder.Card"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                app:cardBackgroundColor="@color/brand_surface_elevated"
-                app:cardCornerRadius="20dp"
-                app:cardElevation="0dp">
+                android:layout_marginBottom="16dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -105,7 +107,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Thông tin cơ bản"
+                        android:text="@string/admin_product_form_section_basic"
                         android:textColor="@color/brand_on_surface"
                         android:textSize="15sp"
                         android:textStyle="bold" />
@@ -117,13 +119,11 @@
                         android:background="@color/brand_primary" />
 
                     <com.google.android.material.textfield.TextInputLayout
-                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                        style="@style/Widget.DrinkOrder.TextInputLayout"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="16dp"
-                        android:hint="Tên sản phẩm"
-                        app:boxBackgroundColor="@color/brand_surface"
-                        app:boxStrokeColor="@color/brand_primary"
+                        android:hint="@string/admin_product_form_hint_name"
                         app:startIconDrawable="@drawable/ic_bag_24">
 
                         <com.google.android.material.textfield.TextInputEditText
@@ -134,13 +134,11 @@
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <com.google.android.material.textfield.TextInputLayout
-                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                        style="@style/Widget.DrinkOrder.TextInputLayout"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="12dp"
-                        android:hint="Mô tả chi tiết"
-                        app:boxBackgroundColor="@color/brand_surface"
-                        app:boxStrokeColor="@color/brand_primary"
+                        android:hint="@string/admin_product_form_hint_description"
                         app:startIconDrawable="@drawable/ic_nav_category">
 
                         <com.google.android.material.textfield.TextInputEditText
@@ -157,12 +155,10 @@
 
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardPricing"
+                style="@style/Widget.DrinkOrder.Card"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                app:cardBackgroundColor="@color/brand_surface_elevated"
-                app:cardCornerRadius="20dp"
-                app:cardElevation="0dp">
+                android:layout_marginBottom="16dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -173,7 +169,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Giá bán &amp; tồn kho"
+                        android:text="@string/admin_product_form_section_pricing"
                         android:textColor="@color/brand_on_surface"
                         android:textSize="15sp"
                         android:textStyle="bold" />
@@ -185,13 +181,11 @@
                         android:background="@color/brand_primary" />
 
                     <com.google.android.material.textfield.TextInputLayout
-                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                        style="@style/Widget.DrinkOrder.TextInputLayout"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="16dp"
-                        android:hint="Giá bán (VND)"
-                        app:boxBackgroundColor="@color/brand_surface"
-                        app:boxStrokeColor="@color/brand_primary">
+                        android:hint="@string/admin_product_form_hint_price">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/edtPrice"
@@ -201,13 +195,11 @@
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <com.google.android.material.textfield.TextInputLayout
-                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                        style="@style/Widget.DrinkOrder.TextInputLayout"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="12dp"
-                        android:hint="Đánh giá (0-5)"
-                        app:boxBackgroundColor="@color/brand_surface"
-                        app:boxStrokeColor="@color/brand_primary">
+                        android:hint="@string/admin_product_form_hint_rating">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/edtRating"
@@ -217,13 +209,11 @@
                     </com.google.android.material.textfield.TextInputLayout>
 
                     <com.google.android.material.textfield.TextInputLayout
-                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                        style="@style/Widget.DrinkOrder.TextInputLayout"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="12dp"
-                        android:hint="Số lượng còn lại"
-                        app:boxBackgroundColor="@color/brand_surface"
-                        app:boxStrokeColor="@color/brand_primary">
+                        android:hint="@string/admin_product_form_hint_stock">
 
                         <com.google.android.material.textfield.TextInputEditText
                             android:id="@+id/edtStock"
@@ -236,9 +226,10 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="16dp"
-                        android:text="Danh mục"
+                        android:text="@string/admin_product_form_label_category"
                         android:textColor="@color/brand_on_surface"
-                        android:textSize="14sp" />
+                        android:textSize="14sp"
+                        android:textStyle="bold" />
 
                     <Spinner
                         android:id="@+id/spinnerCategory"
@@ -251,12 +242,10 @@
 
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardMedia"
+                style="@style/Widget.DrinkOrder.Card"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="20dp"
-                app:cardBackgroundColor="@color/brand_surface_elevated"
-                app:cardCornerRadius="20dp"
-                app:cardElevation="0dp">
+                android:layout_marginBottom="20dp">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -267,7 +256,7 @@
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
-                        android:text="Hình ảnh sản phẩm"
+                        android:text="@string/admin_product_form_section_media"
                         android:textColor="@color/brand_on_surface"
                         android:textSize="15sp"
                         android:textStyle="bold" />
@@ -279,13 +268,11 @@
                         android:background="@color/brand_primary" />
 
                     <com.google.android.material.textfield.TextInputLayout
-                        style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                        style="@style/Widget.DrinkOrder.TextInputLayout"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="16dp"
-                        android:hint="Đường dẫn hình ảnh"
-                        app:boxBackgroundColor="@color/brand_surface"
-                        app:boxStrokeColor="@color/brand_primary"
+                        android:hint="@string/admin_product_form_hint_image_url"
                         app:startIconDrawable="@drawable/ic_nav_category">
 
                         <com.google.android.material.textfield.TextInputEditText
@@ -301,7 +288,7 @@
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="12dp"
-                        android:text="Chọn ảnh từ thiết bị" />
+                        android:text="@string/admin_product_form_button_pick_image" />
 
                     <ImageView
                         android:id="@+id/imgPreview"
@@ -317,10 +304,10 @@
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnSaveProduct"
+                style="@style/Widget.DrinkOrder.Button"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:text="Lưu sản phẩm"
-                android:textAllCaps="false" />
+                android:text="@string/admin_product_form_button_save" />
 
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
