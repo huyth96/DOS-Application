@@ -16,7 +16,9 @@ import com.drinkorder.R;
 import com.drinkorder.ui.admin.AdminCategoriesFragment;
 import com.drinkorder.ui.admin.AdminProductsFragment;
 import com.drinkorder.ui.admin.AdminUsersFragment;
+import com.drinkorder.ui.admin.AdminChatFragment;
 import com.drinkorder.ui.cart.CartFragment;
+import com.drinkorder.ui.chat.ChatFragment;
 import com.drinkorder.ui.home.HomeFragment;
 import com.drinkorder.ui.login.ProfileActivity;
 import com.drinkorder.ui.map.MapActivity;
@@ -96,6 +98,9 @@ public class MainActivity extends AppCompatActivity {
       } else if (id == R.id.tab_orders) {
         replaceFragment(new OrdersFragment());
         return true;
+      } else if (id == R.id.tab_chat) {
+        replaceFragment(new ChatFragment());
+        return true;
       } else if (id == R.id.tab_map) {
         startActivity(new Intent(this, MapActivity.class));
         return false;
@@ -120,6 +125,9 @@ public class MainActivity extends AppCompatActivity {
       return true;
     } else if (menuId == R.id.nav_admin_users) {
       replaceFragment(new AdminUsersFragment());
+      return true;
+    } else if (menuId == R.id.nav_admin_chat) {
+      replaceFragment(new AdminChatFragment());
       return true;
     } else if (menuId == R.id.nav_admin_profile) {
       startActivity(new Intent(this, ProfileActivity.class));
