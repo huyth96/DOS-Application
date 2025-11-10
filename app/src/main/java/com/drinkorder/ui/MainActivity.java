@@ -8,21 +8,26 @@ import android.view.View;
 
 import androidx.annotation.IdRes;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.content.ContextCompat;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.drinkorder.R;
 import com.drinkorder.ui.admin.AdminCategoriesFragment;
 import com.drinkorder.ui.admin.AdminProductsFragment;
 import com.drinkorder.ui.admin.AdminUsersFragment;
 import com.drinkorder.ui.cart.CartFragment;
+import com.drinkorder.ui.chat.customer.CustomerChatFragment;
+import com.drinkorder.ui.chat.customer.CustomerChatVM;
 import com.drinkorder.ui.home.HomeFragment;
 import com.drinkorder.ui.login.ProfileActivity;
 import com.drinkorder.ui.map.MapActivity;
 import com.drinkorder.ui.order.OrdersFragment;
 import com.google.android.material.appbar.MaterialToolbar;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.badge.BadgeDrawable;
 import com.google.android.material.navigation.NavigationView;
 
 public class MainActivity extends AppCompatActivity {
@@ -32,6 +37,7 @@ public class MainActivity extends AppCompatActivity {
   private BottomNavigationView bottomNav;
   private MaterialToolbar toolbar;
   private boolean isAdmin;
+  private CustomerChatVM customerChatVM;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -88,6 +94,26 @@ public class MainActivity extends AppCompatActivity {
     if (bottomNav == null) return;
 
     bottomNav.setVisibility(View.VISIBLE);
+    customerChatVM = new ViewModelProvider(this).get(CustomerChatVM.class);
+    BadgeDrawable chatBadge = bottomNav.getOrCreateBadge(R.id.tab_chat);
+    chatBadge.setVisible(false);
+    chatBadge.setBackgroundColor(ContextCompat.getColor(this, R.color.brand_secondary));
+    chatBadge.setBadgeTextColor(ContextCompat.getColor(this, R.color.brand_on_secondary));
+    chatBadge.setMaxCharacterCount(3);
+    customerChatVM
+        .getUnreadCount()
+        .observe(
+            this,
+            count -> {
+              if (count != null && count > 0) {
+                chatBadge.setVisible(true);
+                chatBadge.setNumber(count);
+              } else {
+                chatBadge.clearNumber();
+                chatBadge.setVisible(false);
+              }
+            });
+
     bottomNav.setOnItemSelectedListener(item -> {
       int id = item.getItemId();
       if (id == R.id.tab_cart) {
@@ -95,6 +121,12 @@ public class MainActivity extends AppCompatActivity {
         return true;
       } else if (id == R.id.tab_orders) {
         replaceFragment(new OrdersFragment());
+        return true;
+      } else if (id == R.id.tab_chat) {
+        replaceFragment(new CustomerChatFragment());
+        if (customerChatVM != null) {
+          customerChatVM.markThreadAsRead();
+        }
         return true;
       } else if (id == R.id.tab_map) {
         startActivity(new Intent(this, MapActivity.class));

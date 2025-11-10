@@ -55,4 +55,19 @@
     <string name="admin_user_empty_filtered">No users match your search</string>
     <string name="admin_user_empty_all_subtitle">New accounts will appear here once customers register.</string>
     <string name="admin_user_empty_filtered_subtitle">Try a different keyword or clear the search box.</string>
+
+    <string name="chat_title">Chat với admin</string>
+    <string name="chat_connecting">Đang kết nối tới admin...</string>
+    <string name="chat_connecting_subtitle">Chúng tôi đang chuẩn bị cuộc trò chuyện của bạn.</string>
+    <string name="chat_banner_retry">Thử lại</string>
+    <string name="chat_banner_error_subtitle">Kiểm tra kết nối và thử lại.</string>
+    <string name="chat_input_hint">Nhập tin nhắn của bạn</string>
+    <string name="chat_send">Gửi</string>
+    <string name="chat_send_in_progress">Đang gửi tin nhắn...</string>
+    <string name="chat_send_failed">Không thể gửi tin nhắn. Vui lòng thử lại.</string>
+    <string name="chat_empty_message">Vui lòng nhập nội dung trước khi gửi.</string>
+    <string name="chat_not_ready">Đang thiết lập cuộc trò chuyện, vui lòng đợi.</string>
+    <string name="chat_connection_failed">Không thể mở cuộc trò chuyện</string>
+    <string name="chat_connection_failed_not_logged_in">Vui lòng đăng nhập để trò chuyện với admin.</string>
+    <string name="chat_connection_failed_generic">Đã có lỗi xảy ra khi mở cuộc trò chuyện.</string>
 </resources>

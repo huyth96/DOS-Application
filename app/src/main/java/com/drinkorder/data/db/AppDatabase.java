@@ -5,9 +5,16 @@ import com.drinkorder.data.db.dao.*;
 import com.drinkorder.data.db.entity.*;
 
 @Database(entities = {
-  UserEntity.class, CategoryEntity.class, ProductEntity.class,
-  CartItemEntity.class, OrderEntity.class, OrderItemEntity.class, PaymentEntity.class
-}, version = 3, exportSchema = false)
+  UserEntity.class,
+  CategoryEntity.class,
+  ProductEntity.class,
+  CartItemEntity.class,
+  OrderEntity.class,
+  OrderItemEntity.class,
+  PaymentEntity.class,
+  ChatThreadEntity.class,
+  ChatMessageEntity.class
+}, version = 4, exportSchema = false)
 public abstract class AppDatabase extends RoomDatabase {
   public abstract UserDao userDao();
   public abstract CategoryDao categoryDao();
@@ -15,6 +22,7 @@ public abstract class AppDatabase extends RoomDatabase {
   public abstract CartDao cartDao();
   public abstract OrderDao orderDao();
   public abstract PaymentDao paymentDao();
+  public abstract ChatDao chatDao();
 
   private static volatile AppDatabase INSTANCE;
   public static AppDatabase get(Context ctx){
