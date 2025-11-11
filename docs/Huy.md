@@ -1,29 +1,59 @@
-# Tính năng của Huy: Đăng ký, Đăng nhập, Quản lý tài khoản
+# Luồng Đăng ký, Đăng nhập và Quản lý tài khoản (ban/unban)
 
-## Luồng đăng ký (`RegisterActivity`)
-- Khởi tạo layout `activity_register`, bind toàn bộ trường nhập và tạo `AuthRepository` dùng lại cho bước auto-login ngay sau khi đăng ký (`app/src/main/java/com/drinkorder/ui/login/RegisterActivity.java:41`, `app/src/main/java/com/drinkorder/ui/login/RegisterActivity.java:48`, `app/src/main/java/com/drinkorder/ui/login/RegisterActivity.java:63`).
-- Hàm `doRegister()` đọc dữ liệu từ năm ô nhập, kiểm tra rỗng và báo lỗi sớm bằng `Toast` nếu thiếu username hoặc mật khẩu (`app/src/main/java/com/drinkorder/ui/login/RegisterActivity.java:80`, `app/src/main/java/com/drinkorder/ui/login/RegisterActivity.java:92`).
-- Phần xử lý nặng chạy trong `Thread` riêng: lấy `UserDao`, kiểm tra trùng username, tạo `UserEntity` với role customer, gán timestamp/ cờ `isBanned` rồi insert vào Room (`app/src/main/java/com/drinkorder/ui/login/RegisterActivity.java:100`, `app/src/main/java/com/drinkorder/ui/login/RegisterActivity.java:103`, `app/src/main/java/com/drinkorder/ui/login/RegisterActivity.java:115`, `app/src/main/java/com/drinkorder/ui/login/RegisterActivity.java:129`).
-- Sau khi insert, activity tự gọi lại `AuthRepository.login()` để tạo session, chuyển sang `MainActivity` khi thành công, hoặc báo lỗi khi tài khoản bị ban hay auto-login thất bại (`app/src/main/java/com/drinkorder/ui/login/RegisterActivity.java:136`, `app/src/main/java/com/drinkorder/ui/login/RegisterActivity.java:140`).
-- `AuthRepository.login()` kiểm tra thông tin với `UserDao`, từ chối nếu sai hoặc bị ban, và ghi `userId/username/role` vào `SharedPreferences` tên `auth` để tái sử dụng trên toàn app (`app/src/main/java/com/drinkorder/data/repo/AuthRepository.java:24`, `app/src/main/java/com/drinkorder/data/repo/AuthRepository.java:32`).
+Tài liệu này mô tả chi tiết các luồng liên quan đến tài khoản: đăng ký, đăng nhập, quản lý hồ sơ và quản trị ban/unban. Các trích dẫn kèm file và vị trí giúp bạn tra cứu nhanh trong codebase.
 
-## Luồng đăng nhập (`LoginActivity`)
-- `LoginActivity` bind hai ô nhập và hai nút hành động, dựng `AuthRepository` với cùng namespace `auth`; nếu `isLoggedIn()` trả về true thì bỏ qua hoàn toàn màn hình login và mở thẳng `MainActivity` (`app/src/main/java/com/drinkorder/ui/login/LoginActivity.java:42`, `app/src/main/java/com/drinkorder/ui/login/LoginActivity.java:58`, `app/src/main/java/com/drinkorder/ui/login/LoginActivity.java:63`).
-- Nút **Login** gọi `doLogin()`: lấy username/password, kiểm tra rỗng, sau đó chạy `auth.login()` trong `Thread` riêng để không chặn UI (`app/src/main/java/com/drinkorder/ui/login/LoginActivity.java:83`, `app/src/main/java/com/drinkorder/ui/login/LoginActivity.java:89`, `app/src/main/java/com/drinkorder/ui/login/LoginActivity.java:97`).
-- Kết quả trả về qua UI thread: `SUCCESS` hiển thị toast và chuyển `MainActivity`, `BANNED` hiển thị thông báo khóa tài khoản, còn lại báo sai thông tin (`app/src/main/java/com/drinkorder/ui/login/LoginActivity.java:103`, `app/src/main/java/com/drinkorder/ui/login/LoginActivity.java:111`).
-- `AuthRepository.logout()` và `isLoggedIn()` dựa vào cùng `SharedPreferences`, đảm bảo mọi Activity có thể kiểm tra/trả session thống nhất (`app/src/main/java/com/drinkorder/data/repo/AuthRepository.java:40`, `app/src/main/java/com/drinkorder/data/repo/AuthRepository.java:44`).
+## Dữ liệu người dùng (Room)
+- Cấu trúc bảng users: `app/src/main/java/com/drinkorder/data/db/entity/UserEntity.java:6`
+  - Khóa chính `userId`, trường `username` duy nhất, `passwordHash`, `fullName`, `email`, `phone`, `role`, `createdAt`, `isBanned`.
+- DAO thao tác: `app/src/main/java/com/drinkorder/data/db/dao/UserDao.java:13`, `app/src/main/java/com/drinkorder/data/db/dao/UserDao.java:17`, `app/src/main/java/com/drinkorder/data/db/dao/UserDao.java:25`, `app/src/main/java/com/drinkorder/data/db/dao/UserDao.java:29`, `app/src/main/java/com/drinkorder/data/db/dao/UserDao.java:35`, `app/src/main/java/com/drinkorder/data/db/dao/UserDao.java:39`
+  - Tìm user theo username, thêm user, quan sát danh sách, cập nhật ban/unban, cập nhật hồ sơ và mật khẩu.
 
-## Quản lý tài khoản (Admin)
+## Repository xác thực
+- AuthRepository chịu trách nhiệm xác thực và lưu phiên: `app/src/main/java/com/drinkorder/data/repo/AuthRepository.java:15`
+  - Khởi tạo: `app/src/main/java/com/drinkorder/data/repo/AuthRepository.java:35`
+  - Đăng nhập (kiểm tra Room, từ chối khi banned, lưu SharedPreferences): `app/src/main/java/com/drinkorder/data/repo/AuthRepository.java:46`
+  - Đăng xuất: `app/src/main/java/com/drinkorder/data/repo/AuthRepository.java:63`
+  - Kiểm tra đã đăng nhập: `app/src/main/java/com/drinkorder/data/repo/AuthRepository.java:68`
+  - Lấy username/role hiện tại: `app/src/main/java/com/drinkorder/data/repo/AuthRepository.java:78`, `app/src/main/java/com/drinkorder/data/repo/AuthRepository.java:83`
 
-### Xem danh sách & thống kê
-- `AdminUsersFragment` dựng `RecyclerView` với `AdminUsersAdapter`, hiển thị tổng số user và tổng số đang bị ban (`app/src/main/java/com/drinkorder/ui/admin/AdminUsersFragment.java:52`, `app/src/main/java/com/drinkorder/ui/admin/AdminUsersFragment.java:86`).
-- Ô tìm kiếm sử dụng `TextWatcher` để lọc theo tên, username, email hoặc số điện thoại; kết quả rỗng sẽ kích hoạt bộ empty-state riêng cho trường hợp chưa có dữ liệu hoặc không khớp tìm kiếm (`app/src/main/java/com/drinkorder/ui/admin/AdminUsersFragment.java:63`, `app/src/main/java/com/drinkorder/ui/admin/AdminUsersFragment.java:100`, `app/src/main/java/com/drinkorder/ui/admin/AdminUsersFragment.java:133`).
-- `AdminUsersAdapter` định dạng từng dòng: render tên, username, role, ngày tạo; đổi màu trạng thái theo `isBanned` và tự vô hiệu hóa nút hành động đối với tài khoản role admin (`app/src/main/java/com/drinkorder/ui/admin/AdminUsersAdapter.java:51`, `app/src/main/java/com/drinkorder/ui/admin/AdminUsersAdapter.java:60`, `app/src/main/java/com/drinkorder/ui/admin/AdminUsersAdapter.java:66`).
+## Luồng Đăng ký (Register)
+- Màn hình và binding: `app/src/main/java/com/drinkorder/ui/login/RegisterActivity.java:25`, `app/src/main/java/com/drinkorder/ui/login/RegisterActivity.java:31`
+- Xử lý register: `app/src/main/java/com/drinkorder/ui/login/RegisterActivity.java:63`
+  - Validate cơ bản (username/password bắt buộc, email hợp lệ nếu có)
+  - Kiểm tra trùng username trong Room
+  - Tạo UserEntity (role=customer, isBanned=false, createdAt=now) và insert
+  - Tự động đăng nhập và chuyển sang MainActivity khi thành công
 
-### Ban / Unban
-- Khi nhấn nút trên từng dòng, adapter gọi callback để `AdminUsersFragment` mở dialog xác nhận với message tùy trạng thái hiện tại (`app/src/main/java/com/drinkorder/ui/admin/AdminUsersAdapter.java:74`, `app/src/main/java/com/drinkorder/ui/admin/AdminUsersFragment.java:147`).
-- Người dùng chấp nhận sẽ kích hoạt `updateBanStatus()`, từ đó gọi `AdminUsersVM.setBanStatus()` thực thi trên thread IO và phản hồi lại qua callback để hiển thị toast thành công/lỗi (`app/src/main/java/com/drinkorder/ui/admin/AdminUsersFragment.java:161`, `app/src/main/java/com/drinkorder/ui/admin/AdminUsersVM.java:39`).
-- ViewModel truy cập `UserDao.updateBanStatus()` để đổi cờ `isBanned` trực tiếp trong Room; LiveData `observeAll()` đẩy danh sách cập nhật về UI ngay sau khi transaction hoàn tất (`app/src/main/java/com/drinkorder/data/db/dao/UserDao.java:21`, `app/src/main/java/com/drinkorder/data/db/dao/UserDao.java:24`, `app/src/main/java/com/drinkorder/ui/admin/AdminUsersVM.java:32`).
+## Luồng Đăng nhập (Login)
+- Màn hình và binding: `app/src/main/java/com/drinkorder/ui/login/LoginActivity.java:23`, `app/src/main/java/com/drinkorder/ui/login/LoginActivity.java:33`
+- Nếu đã có phiên đăng nhập thì bỏ qua login: `app/src/main/java/com/drinkorder/ui/login/LoginActivity.java:43`
+- Đăng nhập nền và phản hồi UI: `app/src/main/java/com/drinkorder/ui/login/LoginActivity.java:67`
+  - SUCCESS: vào MainActivity, BANNED: thông báo bị khóa, còn lại: sai thông tin.
 
-### Lưu ý session
-- Mọi hành động xem/band tài khoản dựa trên trạng thái đăng nhập được lưu trong `SharedPreferences auth`; do đó, logout trên bất kỳ màn hình nào chỉ cần gọi `AuthRepository.logout()` để xóa sạch thông tin và buộc quay về `LoginActivity` (`app/src/main/java/com/drinkorder/data/repo/AuthRepository.java:40`).
+## Hồ sơ và đăng xuất
+- Xem hồ sơ, logout, đi tới chỉnh sửa: `app/src/main/java/com/drinkorder/ui/login/ProfileActivity.java:23`, `app/src/main/java/com/drinkorder/ui/login/ProfileActivity.java:31`
+- Tải thông tin người dùng hiện tại: `app/src/main/java/com/drinkorder/ui/login/ProfileActivity.java:68`
+- Chỉnh sửa hồ sơ, đổi mật khẩu: `app/src/main/java/com/drinkorder/ui/login/EditProfileActivity.java:22`, `app/src/main/java/com/drinkorder/ui/login/EditProfileActivity.java:27`
+
+## Quản trị: Ban / Unban
+- Danh sách người dùng + thống kê: `app/src/main/java/com/drinkorder/ui/admin/AdminUsersFragment.java:54`, `app/src/main/java/com/drinkorder/ui/admin/AdminUsersFragment.java:94`
+- Tìm kiếm, empty-state: `app/src/main/java/com/drinkorder/ui/admin/AdminUsersFragment.java:109`, `app/src/main/java/com/drinkorder/ui/admin/AdminUsersFragment.java:144`
+- Xác nhận ban/unban và thực thi: `app/src/main/java/com/drinkorder/ui/admin/AdminUsersFragment.java:159`, `app/src/main/java/com/drinkorder/ui/admin/AdminUsersFragment.java:174`
+- ViewModel cập nhật Room trên IO thread: `app/src/main/java/com/drinkorder/ui/admin/AdminUsersVM.java:45`
+- Adapter hiển thị trạng thái và bảo vệ tài khoản admin: `app/src/main/java/com/drinkorder/ui/admin/AdminUsersAdapter.java:55`, `app/src/main/java/com/drinkorder/ui/admin/AdminUsersAdapter.java:112`, `app/src/main/java/com/drinkorder/ui/admin/AdminUsersAdapter.java:120`
+- Truy vấn cập nhật ban/unban: `app/src/main/java/com/drinkorder/data/db/dao/UserDao.java:29`
+
+## Vai trò và điều hướng
+- Quyết định giao diện theo role trong phiên: `app/src/main/java/com/drinkorder/ui/MainActivity.java:42`
+  - Admin dùng Navigation Drawer với các màn quản trị, Customer dùng Bottom Navigation.
+
+## Lưu ý bảo mật (cần làm khi triển khai thật)
+- Không lưu mật khẩu dạng plaintext. Cần dùng hash có salt (vd: bcrypt/argon2) và chỉ so khớp hash.
+- Xem xét mã hóa/bảo vệ SharedPreferences nếu lưu thông tin nhạy cảm.
+- Nếu có backend, chuyển sang xác thực qua API và JWT, không để logic xác thực 100% trên client.
+
+## Kiểm thử nhanh các luồng
+- Đăng ký tài khoản mới và kiểm tra auto-login sang MainActivity.
+- Đăng xuất từ Profile và quay lại Login.
+- Đăng nhập bằng tài khoản bị ban (qua Admin) để xác nhận hiển thị thông báo bị khóa.
+- Tìm kiếm trong danh sách Admin và ban/unban; kiểm tra LiveData cập nhật realtime.

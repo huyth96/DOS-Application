@@ -25,6 +25,11 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
+/**
+ * AdminUsersFragment
+ * - Màn hình quản trị người dùng: xem danh sách, thống kê và ban/unban tài khoản.
+ * - Tìm kiếm theo họ tên, username, email, số điện thoại.
+ */
 public class AdminUsersFragment extends Fragment {
 
   private AdminUsersVM vm;
@@ -56,6 +61,7 @@ public class AdminUsersFragment extends Fragment {
     tvEmptyTitle = view.findViewById(R.id.tvUserEmptyTitle);
     tvEmptySubtitle = view.findViewById(R.id.tvUserEmptySubtitle);
 
+    // Danh sách người dùng
     recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
     adapter = new AdminUsersAdapter(this::confirmBanToggle);
     recyclerView.setAdapter(adapter);
@@ -72,6 +78,7 @@ public class AdminUsersFragment extends Fragment {
       });
     }
 
+    // Quan sát danh sách người dùng từ ViewModel (LiveData)
     vm = new ViewModelProvider(this).get(AdminUsersVM.class);
     vm.users.observe(getViewLifecycleOwner(), list -> {
       allUsers.clear();
@@ -83,6 +90,7 @@ public class AdminUsersFragment extends Fragment {
     });
   }
 
+  /** Cập nhật thống kê tổng số user và số user bị ban. */
   private void updateSummary() {
     int total = allUsers.size();
     int banned = 0;
@@ -97,6 +105,7 @@ public class AdminUsersFragment extends Fragment {
     }
   }
 
+  /** Áp dụng tìm kiếm/lọc theo từ khóa hiện tại. */
   private void applyFilters() {
     String query = currentQuery == null ? "" : currentQuery.toLowerCase(Locale.getDefault());
     if (allUsers.isEmpty()) {
@@ -125,11 +134,13 @@ public class AdminUsersFragment extends Fragment {
     toggleEmptyState(filtered.isEmpty(), true);
   }
 
+  /** Trả về chuỗi thường, an toàn khi null. */
   private String safeLower(String value) {
     if (value == null) return "";
     return value.toLowerCase(Locale.getDefault());
   }
 
+  /** Hiển thị/ẩn empty-state với nội dung phù hợp theo ngữ cảnh. */
   private void toggleEmptyState(boolean showEmpty, boolean fromSearch) {
     if (recyclerView == null || emptyState == null) return;
     recyclerView.setVisibility(showEmpty ? View.GONE : View.VISIBLE);
@@ -144,6 +155,7 @@ public class AdminUsersFragment extends Fragment {
     }
   }
 
+  /** Hiển thị hộp thoại xác nhận trước khi ban/unban. */
   private void confirmBanToggle(UserEntity user) {
     if (user == null || getContext() == null) return;
     boolean ban = !user.isBanned;
@@ -158,6 +170,7 @@ public class AdminUsersFragment extends Fragment {
         .show();
   }
 
+  /** Gọi ViewModel để cập nhật trạng thái ban/unban và hiển thị kết quả. */
   private void updateBanStatus(UserEntity user, boolean ban) {
     vm.setBanStatus(user, ban, new AdminUsersVM.ActionCallback() {
       @Override public void onSuccess() {

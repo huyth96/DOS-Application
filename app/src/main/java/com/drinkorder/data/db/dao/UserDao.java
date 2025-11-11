@@ -9,18 +9,23 @@ import java.util.List;
 
 @Dao
 public interface UserDao {
+  /** Tìm người dùng theo username (tối đa 1 kết quả). */
   @Query("SELECT * FROM users WHERE username = :u LIMIT 1")
   UserEntity findByUsername(String u);
 
+  /** Thêm người dùng mới. OnConflictStrategy.ABORT để báo lỗi khi trùng username (unique index). */
   @Insert(onConflict = OnConflictStrategy.ABORT)
   long insert(UserEntity u);
 
+  /** Đếm tổng số người dùng. */
   @Query("SELECT COUNT(*) FROM users")
   int count();
 
+  /** Theo dõi (LiveData) danh sách người dùng, sắp xếp theo thời điểm tạo mới nhất. */
   @Query("SELECT * FROM users ORDER BY createdAt DESC")
   LiveData<List<UserEntity>> observeAll();
 
+  /** Cập nhật trạng thái ban/unban cho user theo userId. */
   @Query("UPDATE users SET isBanned = :banned WHERE userId = :userId")
   void updateBanStatus(int userId, boolean banned);
 

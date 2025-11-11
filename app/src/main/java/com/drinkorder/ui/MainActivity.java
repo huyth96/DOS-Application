@@ -48,6 +48,7 @@ public class MainActivity extends AppCompatActivity {
     toolbar = findViewById(R.id.toolbarMain);
     mapFab = findViewById(R.id.fabMap);
 
+    // Đọc role hiện tại từ phiên đăng nhập để điều hướng giao diện phù hợp
     SharedPreferences sp = getSharedPreferences("auth", Context.MODE_PRIVATE);
     isAdmin = "admin".equalsIgnoreCase(sp.getString("role", "customer"));
 
@@ -58,6 +59,7 @@ public class MainActivity extends AppCompatActivity {
     }
   }
 
+  /** Thiết lập điều hướng cho vai trò Admin (ngăn kéo trái). */
   private void setupAdminNavigation() {
     if (bottomNav != null) bottomNav.setVisibility(View.GONE);
     if (mapFab != null) mapFab.setVisibility(View.GONE);
@@ -85,6 +87,7 @@ public class MainActivity extends AppCompatActivity {
     handleAdminDestination(R.id.nav_admin_products);
   }
 
+  /** Thiết lập điều hướng cho Khách hàng (bottom navigation). */
   private void setupCustomerNavigation() {
     if (drawerLayout != null) {
       drawerLayout.setDrawerLockMode(DrawerLayout.LOCK_MODE_LOCKED_CLOSED);

@@ -17,8 +17,12 @@ import java.util.List;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
+/**
+ * ViewModel cung cấp dữ liệu người dùng cho màn hình quản trị và thực hiện thao tác ban/unban.
+ */
 public class AdminUsersVM extends AndroidViewModel {
 
+  /** Callback thông báo kết quả thao tác (thành công/lỗi). */
   public interface ActionCallback {
     void onSuccess();
     void onError(Throwable throwable);
@@ -27,6 +31,7 @@ public class AdminUsersVM extends AndroidViewModel {
   private final UserDao userDao;
   private final Executor io = Executors.newSingleThreadExecutor();
   private final Handler main = new Handler(Looper.getMainLooper());
+  /** Danh sách người dùng (quan sát qua LiveData). */
   public final LiveData<List<UserEntity>> users;
 
   public AdminUsersVM(@NonNull Application application) {
@@ -36,6 +41,7 @@ public class AdminUsersVM extends AndroidViewModel {
     users = userDao.observeAll();
   }
 
+  /** Cập nhật trạng thái ban/unban trên luồng IO, phản hồi về main thread qua callback. */
   public void setBanStatus(@NonNull UserEntity user, boolean ban, @Nullable ActionCallback callback) {
     io.execute(() -> {
       try {

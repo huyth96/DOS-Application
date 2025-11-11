@@ -20,8 +20,10 @@ import java.util.Date;
 import java.util.List;
 import java.util.Locale;
 
+/** Adapter hiển thị danh sách người dùng cho màn quản trị. */
 public class AdminUsersAdapter extends RecyclerView.Adapter<AdminUsersAdapter.UserVH> {
 
+  /** Callback để fragment xử lý khi người dùng bấm Ban/Unban. */
   public interface Callback {
     void onToggleBan(UserEntity user);
   }
@@ -34,6 +36,7 @@ public class AdminUsersAdapter extends RecyclerView.Adapter<AdminUsersAdapter.Us
     this.callback = callback;
   }
 
+  /** Cập nhật dữ liệu danh sách và render lại. */
   public void submit(List<UserEntity> data) {
     items.clear();
     if (data != null) items.addAll(data);
@@ -65,6 +68,7 @@ public class AdminUsersAdapter extends RecyclerView.Adapter<AdminUsersAdapter.Us
 
     boolean isAdminRole = "admin".equalsIgnoreCase(user.role);
     if (isAdminRole) {
+      // Bảo vệ tài khoản admin: không cho ban
       holder.btnBan.setEnabled(false);
       holder.btnBan.setText(R.string.admin_user_action_protected);
       holder.btnBan.setTextColor(ContextCompat.getColor(holder.itemView.getContext(), R.color.brand_muted_text));
@@ -104,6 +108,7 @@ public class AdminUsersAdapter extends RecyclerView.Adapter<AdminUsersAdapter.Us
     }
   }
 
+  /** Ưu tiên hiển thị fullName; nếu trống dùng username. */
   private String displayName(UserEntity user) {
     if (!TextUtils.isEmpty(user.fullName)) {
       return user.fullName;
@@ -111,6 +116,7 @@ public class AdminUsersAdapter extends RecyclerView.Adapter<AdminUsersAdapter.Us
     return user.username;
   }
 
+  /** Chuyển role thành nhãn hiển thị đẹp. */
   private String roleLabel(String role) {
     if (TextUtils.isEmpty(role)) return "Customer";
     String lower = role.toLowerCase(Locale.getDefault());
