@@ -33,4 +33,5 @@ import java.util.List;
 
   @Query("DELETE FROM products WHERE productId=:productId")
   void deleteById(int productId);
+
 }

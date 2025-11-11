@@ -198,10 +198,10 @@ public class HomeFragment extends Fragment {
     LayoutInflater inflater = LayoutInflater.from(requireContext());
     Integer selected = vm.selectedCategory.getValue();
 
-    if (categories != null && !categories.isEmpty() && selected == null) {
-      vm.selectedCategory.setValue(categories.get(0).categoryId);
-      selected = categories.get(0).categoryId;
-    }
+//    if (categories != null && !categories.isEmpty() && selected == null) {
+//      vm.selectedCategory.setValue(categories.get(0).categoryId);
+//      selected = categories.get(0).categoryId;
+//    }
 
     if (categories != null) {
       for (CategoryEntity cat : categories) {
@@ -209,7 +209,18 @@ public class HomeFragment extends Fragment {
         chip.setText(cat.name);
         chip.setTag(cat.categoryId);
         chip.setChecked(selected != null && selected == cat.categoryId);
-        chip.setOnClickListener(view -> vm.selectedCategory.setValue(cat.categoryId));
+
+        chip.setOnClickListener(view -> {
+          Integer current = vm.selectedCategory.getValue();
+          if (current != null && current.equals(cat.categoryId)) {
+            // 🔹 Nếu bấm lại chính chip đang chọn -> bỏ chọn -> hiển thị tất cả
+            vm.selectedCategory.setValue(null);
+          } else {
+            // 🔹 Ngược lại: chọn danh mục mới
+            vm.selectedCategory.setValue(cat.categoryId);
+          }
+        });
+
         chipCategories.addView(chip);
       }
     }

@@ -46,7 +46,7 @@ public class MainActivity extends AppCompatActivity {
     adminNavView = findViewById(R.id.navAdmin);
     bottomNav = findViewById(R.id.bottomNav);
     toolbar = findViewById(R.id.toolbarMain);
-    mapFab = findViewById(R.id.fabMap);
+//    mapFab = findViewById(R.id.fabMap);
 
     // Đọc role hiện tại từ phiên đăng nhập để điều hướng giao diện phù hợp
     SharedPreferences sp = getSharedPreferences("auth", Context.MODE_PRIVATE);

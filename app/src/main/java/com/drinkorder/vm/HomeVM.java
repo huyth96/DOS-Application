@@ -10,7 +10,8 @@ import com.drinkorder.data.repo.CatalogRepository;
 public class HomeVM extends AndroidViewModel {
   private final CatalogRepository repo;
   public LiveData<java.util.List<CategoryEntity>> categories;
-  public MutableLiveData<Integer> selectedCategory = new MutableLiveData<>(1);
+  public MutableLiveData<Integer> selectedCategory = new MutableLiveData<>(null);
+
   public LiveData<java.util.List<ProductEntity>> products;
 
   public HomeVM(@NonNull Application app){
@@ -18,6 +19,12 @@ public class HomeVM extends AndroidViewModel {
     AppDatabase db = AppDatabase.get(app);
     repo = new CatalogRepository(db.categoryDao(), db.productDao());
     categories = repo.categories();
-    products = Transformations.switchMap(selectedCategory, cid -> repo.productsByCategory(cid==null?1:cid));
+    products = Transformations.switchMap(selectedCategory, cid -> {
+      if (cid == null) {
+        return repo.allProducts(); // 🔹 Nếu không có danh mục được chọn → hiện toàn bộ sản phẩm
+      } else {
+        return repo.productsByCategory(cid);
+      }
+    });
   }
 }

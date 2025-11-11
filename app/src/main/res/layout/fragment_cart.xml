@@ -39,14 +39,14 @@
             android:textSize="18sp"
             android:textStyle="bold" />
 
-        <ImageButton
-            android:id="@+id/btnCartMenu"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:contentDescription="@null"
-            android:padding="6dp"
-            android:src="@drawable/ic_menu_24" />
+<!--        <ImageButton-->
+<!--            android:id="@+id/btnCartMenu"-->
+<!--            android:layout_width="40dp"-->
+<!--            android:layout_height="40dp"-->
+<!--            android:background="?attr/selectableItemBackgroundBorderless"-->
+<!--            android:contentDescription="@null"-->
+<!--            android:padding="6dp"-->
+<!--            android:src="@drawable/ic_menu_24" />-->
     </LinearLayout>
 
     <androidx.recyclerview.widget.RecyclerView
