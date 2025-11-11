@@ -1,18 +1,18 @@
-# Chức năng của Trí: Giỏ hàng và hiển thị sản phẩm cho khách hàng
+# Chức năng của Trí: Hiển thị sản phẩm & giỏ hàng cho khách
 
-## Trang chủ khách hàng (`HomeFragment`)
-- Hiển thị danh sách sản phẩm bằng `RecyclerView` và `ProductsAdapter` với thao tác thêm vào giỏ và mở chi tiết.
-- Sử dụng `HomeVM` để quan sát danh sách sản phẩm, danh mục và danh mục được chọn.
-- Cung cấp chip bộ lọc danh mục, shortcut tới giỏ hàng, đơn hàng và bản đồ cửa hàng.
-- Hiển thị lời chào tùy thời điểm trong ngày và tên người dùng từ `SharedPreferences`.
-- Ô tìm kiếm và các nút "See all" đang thông báo trạng thái phát triển.
+## 1. Luồng dựng danh sách sản phẩm trên trang chủ
+- `HomeFragment` inflate `fragment_home`, cấu hình `RecyclerView` dùng `ProductsAdapter` để render từng thẻ đồ uống và thiết lập hai callback: thêm vào giỏ và mở chi tiết (`app/src/main/java/com/drinkorder/ui/home/HomeFragment.java:97-115`). Adapter định dạng giá, rating, ETA và tải ảnh bằng Glide (`app/src/main/java/com/drinkorder/ui/home/ProductsAdapter.java:24-122`).
+- ViewModel `HomeVM` tạo từ `ViewModelProvider` cung cấp `LiveData` cho danh mục và sản phẩm. Dữ liệu được lấy qua `CatalogRepository`, truy vấn Room `CategoryDao.all()` và `ProductDao.byCategory()` (`app/src/main/java/com/drinkorder/vm/HomeVM.java:10-20`, `app/src/main/java/com/drinkorder/data/repo/CatalogRepository.java:1-11`, `app/src/main/java/com/drinkorder/data/db/dao/ProductDao.java:6-20`).
+- `HomeFragment` quan sát `vm.products` để cập nhật adapter, `vm.categories` để dựng chip bộ lọc và `vm.selectedCategory` để giữ trạng thái lựa chọn (`app/src/main/java/com/drinkorder/ui/home/HomeFragment.java:164-175`). Khi `selectedCategory` đổi, `Transformations.switchMap` trong `HomeVM` tự động chuyển sang query danh sách sản phẩm tương ứng nên UI luôn hiển thị đúng danh mục.
 
-## Giỏ hàng (`CartFragment`)
-- Sử dụng `CartVM` để quan sát danh sách giỏ hàng theo thời gian thực.
-- `CartAdapter` cho phép tăng/giảm số lượng hoặc xóa sản phẩm khỏi giỏ.
-- Tính toán tổng số lượng và tổng tiền, định dạng theo chuẩn VND.
-- Nút Checkout gọi `OrdersVM.checkout` và hiển thị kết quả thành công hoặc thất bại.
+## 2. Bộ lọc danh mục & tìm kiếm
+- `renderCategories()` sinh chip từ danh sách Room, đánh dấu chip đang chọn và gắn `setOnClickListener` để cập nhật `vm.selectedCategory` (đồng nghĩa kích hoạt lại luồng `productsByCategory`) (`app/src/main/java/com/drinkorder/ui/home/HomeFragment.java:195-214`). `highlightSelectedCategory()` đảm bảo trạng thái checked được đồng bộ khi dữ liệu thay đổi (`app/src/main/java/com/drinkorder/ui/home/HomeFragment.java:218-228`).
+- Ô tìm kiếm `edtSearch` lắng nghe action IME Search hoặc phím Enter và gọi `performSearch()`, hiện tại mới dừng ở thông báo “coming soon” (`app/src/main/java/com/drinkorder/ui/home/HomeFragment.java:144-257`). Phần search chưa có truy vấn Room nên nếu cần triển khai tiếp theo sẽ mở rộng chính hàm này.
 
-## Trải nghiệm tổng thể
-- Người dùng có thể duyệt sản phẩm, thêm vào giỏ, xem số lượng trực tiếp từ badge.
-- Các shortcut giúp chuyển nhanh sang giỏ hàng, lịch sử đơn và vị trí cửa hàng.
+## 3. Thêm sản phẩm vào giỏ từ homepage
+- `HomeFragment` lấy `CartVM` chia sẻ với `Activity` để tái sử dụng dữ liệu khi chuyển tab (`app/src/main/java/com/drinkorder/ui/home/HomeFragment.java:164-191`). Adapter gọi `cartVM.add(product)` ngay trong callback “Add” và hiển thị toast xác nhận cho người dùng (`app/src/main/java/com/drinkorder/ui/home/HomeFragment.java:107-190`).
+- `CartVM` ủy quyền cho `CartRepository`, nơi thao tác `CartDao` trên thread nền: nếu sản phẩm chưa tồn tại sẽ `insert` với `quantity=1`, nếu đã có sẽ tăng số lượng (`app/src/main/java/com/drinkorder/vm/CartVM.java:1-20`, `app/src/main/java/com/drinkorder/data/repo/CartRepository.java:6-27`). `CartRepository.cart()` trả về `LiveData<List<CartItemWithProduct>>`, giúp `CartFragment` và badge trên homepage nhận cập nhật ngay lập tức.
+- Badge trên trang chủ quan sát `cartVM.cart`, cộng dồn `quantity` của từng `CartItemWithProduct` và hiển thị số lượng ở góc icon giỏ (`app/src/main/java/com/drinkorder/ui/home/HomeFragment.java:176-190`), bảo đảm người dùng thấy được số món vừa thêm mà không cần rời khỏi trang.
+
+## 4. Trải nghiệm tổng quan & Shortcut
+- Các shortcut ở đầu trang sử dụng `switchTab()` để chuyển trực tiếp sang tab Giỏ, Đơn hàng hoặc mở `MapActivity` khi muốn xem vị trí cửa hàng (`app/src/main/java/com/drinkorder/ui/home/HomeFragment.java:123-140`, `app/src/main/java/com/drinkorder/ui/home/HomeFragment.java:270-275`). Bên cạnh đó, lời chào cá nhân hóa dựa trên thời gian + username lưu trong `SharedPreferences auth` giúp giao diện thân thiện (`app/src/main/java/com/drinkorder/ui/home/HomeFragment.java:231-249`).
