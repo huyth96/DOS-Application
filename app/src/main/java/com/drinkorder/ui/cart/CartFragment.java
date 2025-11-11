@@ -97,6 +97,7 @@ public class CartFragment extends Fragment {
     tvTotal = v.findViewById(R.id.tvTotal);
     // Ánh xạ TextView hiển thị tổng tiền.
     tvGrandTotal = v.findViewById(R.id.tvGrandTotal);
+    // Ánh xạ nút back
     ImageButton btnBack = v.findViewById(R.id.btnBack);
     btnBack.setOnClickListener(view -> {
       BottomNavigationView nav = requireActivity().findViewById(R.id.bottomNav);
