@@ -46,7 +46,7 @@ public class MainActivity extends AppCompatActivity {
     adminNavView = findViewById(R.id.navAdmin);
     bottomNav = findViewById(R.id.bottomNav);
     toolbar = findViewById(R.id.toolbarMain);
-    mapFab = findViewById(R.id.fabMap);
+//    mapFab = findViewById(R.id.fabMap);
 
     SharedPreferences sp = getSharedPreferences("auth", Context.MODE_PRIVATE);
     isAdmin = "admin".equalsIgnoreCase(sp.getString("role", "customer"));

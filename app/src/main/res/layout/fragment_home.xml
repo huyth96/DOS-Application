@@ -178,7 +178,7 @@
                 android:clickable="true"
                 android:focusable="true"
                 android:foreground="?attr/selectableItemBackgroundBorderless"
-                app:cardBackgroundColor="@color/brand_secondary_container"
+                app:cardBackgroundColor="@color/brand_surface_elevated"
                 app:cardCornerRadius="20dp"
                 app:cardElevation="0dp">
 
@@ -194,14 +194,14 @@
                         android:layout_height="24dp"
                         android:contentDescription="@null"
                         android:src="@drawable/ic_nav_cart"
-                        android:tint="@color/brand_on_secondary" />
+                        app:tint="@color/brand_primary" />
 
                     <TextView
                         android:layout_width="wrap_content"
                         android:layout_height="wrap_content"
                         android:layout_marginTop="8dp"
                         android:text="Cart"
-                        android:textColor="@color/brand_on_secondary"
+                        android:textColor="@color/brand_on_surface"
                         android:textAlignment="center"
                         android:textSize="14sp"
                         android:textStyle="bold" />
@@ -233,7 +233,7 @@
                         android:layout_height="24dp"
                         android:contentDescription="@null"
                         android:src="@drawable/ic_map_pin"
-                        android:tint="@color/brand_primary" />
+                        app:tint="@color/brand_primary" />
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -271,7 +271,7 @@
                         android:layout_height="24dp"
                         android:contentDescription="@null"
                         android:src="@drawable/ic_nav_orders"
-                        android:tint="@color/brand_primary" />
+                        app:tint="@color/brand_primary" />
 
                     <TextView
                         android:layout_width="wrap_content"
@@ -327,7 +327,7 @@
                     android:layout_marginStart="4dp"
                     android:contentDescription="@null"
                     android:src="@drawable/ic_arrow_right_24"
-                    android:tint="@color/brand_primary" />
+                    app:tint="@color/brand_primary" />
             </LinearLayout>
         </LinearLayout>
 
@@ -386,7 +386,7 @@
                     android:layout_marginStart="4dp"
                     android:contentDescription="@null"
                     android:src="@drawable/ic_arrow_right_24"
-                    android:tint="@color/brand_primary" />
+                    app:tint="@color/brand_primary" />
             </LinearLayout>
         </LinearLayout>
 

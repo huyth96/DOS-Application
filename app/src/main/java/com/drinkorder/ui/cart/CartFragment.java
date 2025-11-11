@@ -12,6 +12,7 @@ import android.view.ViewGroup;
 // Import Button để xử lý hành động thanh toán.
 import android.widget.Button;
 // Import TextView để hiển thị tổng số lượng và tổng tiền.
+import android.widget.ImageButton;
 import android.widget.TextView;
 // Import Toast để thông báo kết quả thanh toán cho người dùng.
 import android.widget.Toast;
@@ -39,6 +40,7 @@ import com.drinkorder.data.db.pojo.CartItemWithProduct;
 import com.drinkorder.vm.CartVM;
 // Import OrdersVM để thực hiện thao tác checkout.
 import com.drinkorder.vm.OrdersVM;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 // Import NumberFormat để định dạng giá tiền theo locale.
 import java.text.NumberFormat;
@@ -95,6 +97,11 @@ public class CartFragment extends Fragment {
     tvTotal = v.findViewById(R.id.tvTotal);
     // Ánh xạ TextView hiển thị tổng tiền.
     tvGrandTotal = v.findViewById(R.id.tvGrandTotal);
+    ImageButton btnBack = v.findViewById(R.id.btnBack);
+    btnBack.setOnClickListener(view -> {
+      BottomNavigationView nav = requireActivity().findViewById(R.id.bottomNav);
+      if (nav != null) nav.setSelectedItemId(R.id.tab_home);
+    });
     // Ánh xạ nút thanh toán để thực hiện checkout.
     Button btnCheckout = v.findViewById(R.id.btnCheckout);
     // Khi bấm thanh toán sẽ gọi OrdersVM tạo đơn hàng với phương thức mặc định.

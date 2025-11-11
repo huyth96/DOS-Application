@@ -11,4 +11,7 @@ public class CatalogRepository {
   public CatalogRepository(CategoryDao c, ProductDao p){ this.c=c; this.p=p; }
   public LiveData<java.util.List<CategoryEntity>> categories(){ return c.all(); }
   public LiveData<java.util.List<ProductEntity>> productsByCategory(int cid){ return p.byCategory(cid); }
+  public LiveData<List<ProductEntity>> allProducts() {
+    return p.all(); // lấy tất cả sản phẩm
+  }
 }
