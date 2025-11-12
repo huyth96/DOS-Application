@@ -15,19 +15,24 @@ import com.drinkorder.data.db.AppDatabase;
 import com.drinkorder.data.db.entity.UserEntity;
 import com.drinkorder.data.repo.AuthRepository;
 
+
 /**
  * EditProfileActivity
- * - Cho phép người dùng cập nhật họ tên, email, số điện thoại và tùy chọn đổi mật khẩu.
+ * - Màn hình cho phép người dùng chỉnh sửa thông tin cá nhân:
+ *   + Họ tên, Email, Số điện thoại
+ *   + Có thể thay đổi mật khẩu mới (tùy chọn)
  */
 public class EditProfileActivity extends AppCompatActivity {
   private EditText edtFullName, edtEmail, edtPhone, edtNewPass;
   private Button btnSave, btnCancel;
+  // Repository để thao tác với user (login, cập nhật, lưu thông tin)
   private AuthRepository auth;
 
   @Override protected void onCreate(Bundle b) {
     super.onCreate(b);
     setContentView(R.layout.activity_edit_profile);
 
+    // Ánh xạ view từ layout
     edtFullName = findViewById(R.id.edtFullName);
     edtEmail    = findViewById(R.id.edtEmail);
     edtPhone    = findViewById(R.id.edtPhone);
@@ -35,9 +40,12 @@ public class EditProfileActivity extends AppCompatActivity {
     btnSave     = findViewById(R.id.btnSave);
     btnCancel   = findViewById(R.id.btnCancel);
 
+    // Lấy SharedPreferences để xác định người dùng hiện tại
     SharedPreferences sp = getSharedPreferences("auth", Context.MODE_PRIVATE);
+    // Khởi tạo AuthRepository dùng database và shared preferences
     auth = new AuthRepository(AppDatabase.get(this).userDao(), sp);
 
+    // Lấy username người đang đăng nhập
     String username = auth.getLoggedUserName();
     if (username == null) { finish(); return; }
 
@@ -59,11 +67,12 @@ public class EditProfileActivity extends AppCompatActivity {
       String phone = edtPhone.getText().toString().trim();
       String newPass = edtNewPass.getText().toString().trim();
 
+      // Kiểm tra định dạng email hợp lệ
       if (!email.isEmpty() && !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
         Toast.makeText(this, "Invalid email address", Toast.LENGTH_SHORT).show();
         return;
       }
-
+      // Sau khi cập nhật xong, quay lại UI thông báo
       new Thread(() -> {
         var dao = AppDatabase.get(this).userDao();
         dao.updateProfile(username, full, email, phone);

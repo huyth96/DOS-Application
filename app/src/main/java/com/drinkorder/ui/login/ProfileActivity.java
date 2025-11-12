@@ -18,13 +18,18 @@ import com.drinkorder.data.repo.AuthRepository;
 
 /**
  * ProfileActivity
- * - Hiển thị thông tin hồ sơ người dùng hiện tại và cho phép logout/chỉnh sửa hồ sơ.
+ * - Màn hình hiển thị thông tin tài khoản người dùng hiện tại.
+ * - Cho phép người dùng:
+ *   + Xem các thông tin: username, họ tên, email, điện thoại, vai trò.
+ *   + Chỉnh sửa hồ sơ cá nhân (mở EditProfileActivity).
+ *   + Đăng xuất khỏi hệ thống.
  */
 public class ProfileActivity extends AppCompatActivity {
   private TextView tvUsername, tvFullName, tvEmail, tvPhone, tvRole;
   private Button btnLogout, btnEdit;
   private AuthRepository auth;
 
+  // Mã request khi quay lại từ EditProfileActivity
   private static final int REQ_EDIT = 1001;
 
   @Override
@@ -40,9 +45,12 @@ public class ProfileActivity extends AppCompatActivity {
     btnLogout = findViewById(R.id.btnLogout);
     btnEdit = findViewById(R.id.btnEdit);
 
+    // Lấy SharedPreferences (dùng để lưu trạng thái đăng nhập)
     SharedPreferences sp = getSharedPreferences("auth", Context.MODE_PRIVATE);
+    // Khởi tạo AuthRepository với DAO và SharedPreferences
     auth = new AuthRepository(AppDatabase.get(this).userDao(), sp);
 
+    // Kiểm tra xem người dùng hiện tại đã đăng nhập chưa
     String username = auth.getLoggedUserName();
     if (username == null) {
       startActivity(new Intent(this, LoginActivity.class));
@@ -50,29 +58,38 @@ public class ProfileActivity extends AppCompatActivity {
       return;
     }
 
+    // Nếu đã đăng nhập → tải thông tin người dùng hiện tại
     loadUser(username);
 
+    // Khi nhấn nút "Logout" → đăng xuất, xóa thông tin khỏi SharedPreferences
     btnLogout.setOnClickListener(v -> {
       auth.logout();
       Intent i = new Intent(this, LoginActivity.class);
+      // Xóa toàn bộ back stack để không thể quay lại bằng nút Back
       i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
       startActivity(i);
       finish();
     });
 
+    // Khi nhấn "Edit Profile" → mở EditProfileActivity để chỉnh sửa
     btnEdit.setOnClickListener(v ->
         startActivityForResult(new Intent(this, EditProfileActivity.class), REQ_EDIT));
   }
 
-  /** Tải thông tin hồ sơ người dùng và hiển thị lên UI. */
+  /**
+   * Tải thông tin người dùng từ cơ sở dữ liệu và hiển thị lên giao diện.
+   * @param username Tên tài khoản hiện tại
+   */
   private void loadUser(String username) {
     new Thread(() -> {
+      // Truy vấn thông tin người dùng từ cơ sở dữ liệu
       UserEntity user = AppDatabase.get(this).userDao().findByUsername(username);
       runOnUiThread(() -> {
         if (user == null) {
           Toast.makeText(this, "Account not found", Toast.LENGTH_SHORT).show();
           return;
         }
+        // Gán dữ liệu lên giao diện, nếu null thì hiển thị "(not set)"
         tvUsername.setText(user.username);
         tvFullName.setText(user.fullName == null ? "(not set)" : user.fullName);
         tvEmail.setText(user.email == null ? "(not set)" : user.email);
@@ -82,10 +99,16 @@ public class ProfileActivity extends AppCompatActivity {
     }).start();
   }
 
+  /**
+   * Xử lý khi quay lại từ EditProfileActivity.
+   * Nếu người dùng đã cập nhật hồ sơ, tải lại dữ liệu mới nhất.
+   */
   @Override
   protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
     super.onActivityResult(requestCode, resultCode, data);
+    // Kiểm tra request và kết quả trả về từ EditProfileActivity
     if (requestCode == REQ_EDIT && resultCode == RESULT_OK && data != null && data.getBooleanExtra("updated", false)) {
+      // Lấy lại username và tải lại thông tin người dùng để cập nhật UI
       String username = auth.getLoggedUserName();
       if (username != null) loadUser(username);
     }
