@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -15,6 +16,7 @@ import com.drinkorder.R;
 import com.drinkorder.data.db.AppDatabase;
 import com.drinkorder.data.db.entity.UserEntity;
 import com.drinkorder.data.repo.AuthRepository;
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 
 /**
  * ProfileActivity
@@ -28,9 +30,11 @@ public class ProfileActivity extends AppCompatActivity {
   private TextView tvUsername, tvFullName, tvEmail, tvPhone, tvRole;
   private Button btnLogout, btnEdit;
   private AuthRepository auth;
+  private BottomNavigationView bottomNav;
 
   // Mã request khi quay lại từ EditProfileActivity
   private static final int REQ_EDIT = 1001;
+  public static final String EXTRA_SELECTED_TAB = "com.drinkorder.ui.login.ProfileActivity.EXTRA_SELECTED_TAB";
 
   @Override
   protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -44,11 +48,31 @@ public class ProfileActivity extends AppCompatActivity {
     tvRole = findViewById(R.id.tvRole);
     btnLogout = findViewById(R.id.btnLogout);
     btnEdit = findViewById(R.id.btnEdit);
+    bottomNav = findViewById(R.id.bottomNav);
 
     // Lấy SharedPreferences (dùng để lưu trạng thái đăng nhập)
     SharedPreferences sp = getSharedPreferences("auth", Context.MODE_PRIVATE);
     // Khởi tạo AuthRepository với DAO và SharedPreferences
     auth = new AuthRepository(AppDatabase.get(this).userDao(), sp);
+
+    boolean showCustomerNav = "customer".equalsIgnoreCase(auth.role());
+    if (bottomNav != null) {
+      if (!showCustomerNav) {
+        bottomNav.setVisibility(View.GONE);
+      } else {
+        bottomNav.setVisibility(View.VISIBLE);
+        bottomNav.setOnItemSelectedListener(item -> {
+          int id = item.getItemId();
+          if (id == R.id.tab_profile) return true;
+          Intent result = new Intent();
+          result.putExtra(EXTRA_SELECTED_TAB, id);
+          setResult(RESULT_OK, result);
+          finish();
+          return true;
+        });
+        bottomNav.setSelectedItemId(R.id.tab_profile);
+      }
+    }
 
     // Kiểm tra xem người dùng hiện tại đã đăng nhập chưa
     String username = auth.getLoggedUserName();

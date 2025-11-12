@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.view.View;
 
 import androidx.annotation.IdRes;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.view.GravityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
@@ -36,6 +37,7 @@ public class MainActivity extends AppCompatActivity {
   private MaterialToolbar toolbar;
   private ExtendedFloatingActionButton mapFab;
   private boolean isAdmin;
+  private static final int REQ_PROFILE = 2001;
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -97,31 +99,31 @@ public class MainActivity extends AppCompatActivity {
     if (bottomNav == null) return;
 
     bottomNav.setVisibility(View.VISIBLE);
-    bottomNav.setOnItemSelectedListener(item -> {
-      int id = item.getItemId();
-      if (id == R.id.tab_cart) {
-        replaceFragment(new CartFragment());
-        return true;
-      } else if (id == R.id.tab_orders) {
-        replaceFragment(new OrdersFragment());
-        return true;
-      } else if (id == R.id.tab_chat) {
-        replaceFragment(new ChatFragment());
-        return true;
-      } else if (id == R.id.tab_profile) {
-        startActivity(new Intent(this, ProfileActivity.class));
-        return true;
-      } else {
-        replaceFragment(new HomeFragment());
-        return true;
-      }
-    });
+    bottomNav.setOnItemSelectedListener(item -> handleCustomerDestination(item.getItemId()));
     bottomNav.setSelectedItemId(R.id.tab_home);
-    replaceFragment(new HomeFragment());
 
     if (mapFab != null) {
       mapFab.setVisibility(View.VISIBLE);
       mapFab.setOnClickListener(v -> startActivity(new Intent(this, MapActivity.class)));
+    }
+  }
+
+  private boolean handleCustomerDestination(@IdRes int menuId) {
+    if (menuId == R.id.tab_cart) {
+      replaceFragment(new CartFragment());
+      return true;
+    } else if (menuId == R.id.tab_orders) {
+      replaceFragment(new OrdersFragment());
+      return true;
+    } else if (menuId == R.id.tab_chat) {
+      replaceFragment(new ChatFragment());
+      return true;
+    } else if (menuId == R.id.tab_profile) {
+      startActivityForResult(new Intent(this, ProfileActivity.class), REQ_PROFILE);
+      return true;
+    } else {
+      replaceFragment(new HomeFragment());
+      return true;
     }
   }
 
@@ -150,6 +152,15 @@ public class MainActivity extends AppCompatActivity {
         .beginTransaction()
         .replace(R.id.container, fragment)
         .commit();
+  }
+
+  @Override
+  protected void onActivityResult(int requestCode, int resultCode, @Nullable Intent data) {
+    super.onActivityResult(requestCode, resultCode, data);
+    if (requestCode == REQ_PROFILE && resultCode == RESULT_OK && data != null && bottomNav != null) {
+      int selectedTab = data.getIntExtra(ProfileActivity.EXTRA_SELECTED_TAB, R.id.tab_home);
+      bottomNav.setSelectedItemId(selectedTab);
+    }
   }
 
   @Override
