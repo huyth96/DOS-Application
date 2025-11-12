@@ -15,11 +15,16 @@ import com.drinkorder.data.db.pojo.OrderItemWithProduct;
 
 public class OrderLineAdapter extends ListAdapter<OrderItemWithProduct, OrderLineAdapter.VH> {
 
+    // Constructor: truyền DIFF để ListAdapter so sánh và update danh sách hiệu quả
     public OrderLineAdapter() {
         super(DIFF);
     }
 
-    /** So sánh từng dòng dựa vào id, số lượng và đơn giá (double) */
+    /**
+     * DiffUtil giúp so sánh item cũ và mới:
+     * - areItemsTheSame: cùng id → là cùng 1 item
+     * - areContentsTheSame: nội dung (tên, số lượng, giá) có thay đổi không
+     */
     static final DiffUtil.ItemCallback<OrderItemWithProduct> DIFF =
             new DiffUtil.ItemCallback<OrderItemWithProduct>() {
                 @Override
@@ -30,21 +35,25 @@ public class OrderLineAdapter extends ListAdapter<OrderItemWithProduct, OrderLin
 
                 @Override
                 public boolean areContentsTheSame(@NonNull OrderItemWithProduct a, @NonNull OrderItemWithProduct b) {
+                    // So sánh tên sản phẩm
                     String an = (a.product != null && a.product.name != null) ? a.product.name : "";
                     String bn = (b.product != null && b.product.name != null) ? b.product.name : "";
 
+                    // So sánh số lượng
                     int aq = (a.item != null) ? a.item.quantity : 0;
                     int bq = (b.item != null) ? b.item.quantity : 0;
 
+                    // So sánh đơn giá
                     double ap = (a.item != null) ? a.item.unitPrice : 0d;
                     double bp = (b.item != null) ? b.item.unitPrice : 0d;
 
-                    return an.equals(bn)
-                            && aq == bq
-                            && Double.compare(ap, bp) == 0;   // dùng Double cho double
+                    return an.equals(bn) // tên giống
+                            && aq == bq// số lượng giống
+                            && Double.compare(ap, bp) == 0; // giá giống, dùng Double cho double
                 }
             };
 
+    // Tạo ViewHolder: inflate layout item_order_line.xml
     @NonNull @Override
     public VH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View v = LayoutInflater.from(parent.getContext())
@@ -52,6 +61,7 @@ public class OrderLineAdapter extends ListAdapter<OrderItemWithProduct, OrderLin
         return new VH(v);
     }
 
+    // Gán dữ liệu của từng OrderItemWithProduct vào các view trong ViewHolder.
     @Override
     public void onBindViewHolder(@NonNull VH h, int position) {
         OrderItemWithProduct row = getItem(position);
@@ -68,7 +78,7 @@ public class OrderLineAdapter extends ListAdapter<OrderItemWithProduct, OrderLin
         h.tvUnit.setText(String.format("%.0f", price));
         h.tvLineTotal.setText(String.format("%.0f", total));
     }
-
+    // Giữ tham chiếu tới các view (TextView) của một dòng item.
     static class VH extends RecyclerView.ViewHolder {
         TextView tvName, tvQty, tvUnit, tvLineTotal;
         VH(@NonNull View v) {

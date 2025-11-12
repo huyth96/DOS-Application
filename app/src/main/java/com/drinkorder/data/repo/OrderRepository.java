@@ -30,9 +30,10 @@ import java.util.concurrent.Executors;
  */
 public class OrderRepository {
 
+  // Callback để thông báo kết quả checkout
   public interface Callback {
-    void onSuccess(long orderId);
-    void onError(Throwable t);
+    void onSuccess(long orderId);// thành công, trả về orderId
+    void onError(Throwable t);// lỗi
   }
 
   private final OrderDao orderDao;
@@ -40,9 +41,10 @@ public class OrderRepository {
   private final CartDao cartDao;
   private final ProductDao productDao;
 
-  private final Executor io;              // chạy nền
+  private final Executor io;              // chạy nền thread background để chạy thao tác DB
   private static final Handler MAIN = new Handler(Looper.getMainLooper()); // trả về UI
 
+  // Constructor mặc định dùng SingleThreadExecutor nếu không truyền Executor
   public OrderRepository(OrderDao orderDao,
                          PaymentDao paymentDao,
                          CartDao cartDao,
@@ -59,17 +61,20 @@ public class OrderRepository {
     this.paymentDao = paymentDao;
     this.cartDao = cartDao;
     this.productDao = productDao;
+    // Nếu ioExecutor null thì tạo SingleThreadExecutor
     this.io = ioExecutor == null ? Executors.newSingleThreadExecutor() : ioExecutor;
   }
 
   /**
-   * Tiến hành checkout:
-   *  - Đọc toàn bộ Cart ngay lúc gọi (sync)
-   *  - Tính tổng, tạo Order/Items/Payment
-   *  - Clear cart
-   *  - onSuccess/onError luôn được post về Main thread
-   */
-  public void checkout(int userId, @Nullable String paymentMethod, @Nullable Callback cb) {
+   * Checkout giỏ hàng cho user
+   *  1) Lấy toàn bộ cart hiện tại
+   *  2) Tính tổng, build danh sách OrderItemEntity
+   *  3) Tạo Order
+   *  4) Gắn orderId cho từng item và insert
+   *  5) Tạo Payment
+   *  6) Clear Cart
+   *  7) Trả kết quả về UI thread qua Callback
+   */  public void checkout(int userId, @Nullable String paymentMethod, @Nullable Callback cb) {
     io.execute(() -> {
       try {
         // 1) Lấy items hiện tại trong giỏ

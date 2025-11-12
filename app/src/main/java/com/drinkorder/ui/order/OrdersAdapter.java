@@ -15,18 +15,24 @@ import com.drinkorder.data.db.entity.OrderEntity;
 
 import java.lang.reflect.Field;
 import java.util.Locale;
-
+// Adapter dùng cho RecyclerView hiển thị danh sách OrderEntity
+// Kế thừa ListAdapter để dùng DiffUtil tự động so sánh và tối ưu cập nhật
 public class OrdersAdapter extends ListAdapter<OrderEntity, OrdersAdapter.VH> {
 
+    // Interface callback khi click vào 1 đơn hàng
     public interface OnOrderClick { void onClick(OrderEntity order); }
     private final OnOrderClick onClick;
 
+    // Constructor truyền callback
     public OrdersAdapter(OnOrderClick onClick) {
-        super(DIFF);
+        super(DIFF); // DIFF dùng để so sánh item cũ và mới
         this.onClick = onClick;
     }
-
-    /** So sánh linh hoạt theo nhiều tên field, tránh .equals cho kiểu nguyên thủy */
+    /**
+     * DiffUtil.ItemCallback giúp ListAdapter biết item nào thay đổi
+     * để RecyclerView chỉ update những item cần thiết
+     * So sánh linh hoạt theo nhiều tên field, tránh .equals cho kiểu nguyên thủy
+     */
     static final DiffUtil.ItemCallback<OrderEntity> DIFF = new DiffUtil.ItemCallback<OrderEntity>() {
         @Override
         public boolean areItemsTheSame(@NonNull OrderEntity a, @NonNull OrderEntity b) {
@@ -38,6 +44,7 @@ public class OrdersAdapter extends ListAdapter<OrderEntity, OrdersAdapter.VH> {
 
         @Override
         public boolean areContentsTheSame(@NonNull OrderEntity a, @NonNull OrderEntity b) {
+            // So sánh nội dung của item: trạng thái, tổng tiền, thời gian tạo
             String as = getStringField(a, new String[]{"status","orderStatus","state","orderState"});
             String bs = getStringField(b, new String[]{"status","orderStatus","state","orderState"});
 
@@ -53,6 +60,7 @@ public class OrdersAdapter extends ListAdapter<OrderEntity, OrdersAdapter.VH> {
         }
     };
 
+    // Tạo ViewHolder: inflate layout item_order.xml
     @NonNull @Override
     public VH onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         View v = LayoutInflater.from(parent.getContext())
@@ -60,6 +68,7 @@ public class OrdersAdapter extends ListAdapter<OrderEntity, OrdersAdapter.VH> {
         return new VH(v);
     }
 
+    // Bind dữ liệu của OrderEntity vào các TextView
     @Override
     public void onBindViewHolder(@NonNull VH h, int position) {
         OrderEntity o = getItem(position);
@@ -68,15 +77,17 @@ public class OrdersAdapter extends ListAdapter<OrderEntity, OrdersAdapter.VH> {
         String status = getStringField(o, new String[]{"status","orderStatus","state","orderState"});
         double total = getDoubleField(o, new String[]{"totalAmount","total","grandTotal","amount"});
 
-        h.tvId.setText("#" + id);
-        h.tvStatus.setText(safe(status));
-        h.tvTotal.setText(String.format(Locale.getDefault(), "%.0f", total));
+        h.tvId.setText("#" + id);// hiển thị mã đơn
+        h.tvStatus.setText(safe(status));// hiển thị trạng thái
+        h.tvTotal.setText(String.format(Locale.getDefault(), "%.0f", total));// hiển thị tổng tiền
 
+        // Thiết lập click listener cho cả item
         h.itemView.setOnClickListener(v -> {
             if (onClick != null) onClick.onClick(o);
         });
     }
 
+    // ViewHolder chứa 3 TextView: id, status, total
     static class VH extends RecyclerView.ViewHolder {
         TextView tvId, tvStatus, tvTotal;
         VH(@NonNull View v) {
